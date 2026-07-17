@@ -55,7 +55,7 @@
   .map-container > svg{
     display:block; width:100%; height:100%;
     transform-origin:0 0;
-    touch-action:none;
+    touch-action:pan-y;
   }
   .hamburger-btn{
     position:fixed; top:14px; left:14px; z-index:1100;
@@ -1108,6 +1108,10 @@ const MIN_SCALE = 1, MAX_SCALE = 4;
 function applyMapTransform() {
   mapSvg.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
   resetViewBtn.classList.toggle('visible', zoomScale > 1.01);
+  // At default zoom, leave single-finger vertical swipes free for normal page scroll
+  // (so the Alliance Summary chart below the map stays reachable). Once zoomed in,
+  // claim single-finger gestures for panning the map instead.
+  mapSvg.style.touchAction = zoomScale > 1.01 ? 'none' : 'pan-y';
 }
 
 function clampPan() {
@@ -1189,6 +1193,9 @@ container.addEventListener('touchend', () => {
 }, { passive: true });
 
 container.addEventListener('wheel', (e) => {
+  // Plain scroll = let the page scroll normally (so the chart below stays reachable).
+  // Ctrl/Cmd+scroll (and trackpad pinch, which browsers report the same way) = zoom the map.
+  if (!e.ctrlKey && !e.metaKey) return;
   e.preventDefault();
   const rect = container.getBoundingClientRect();
   const cursorX = e.clientX - rect.left;
