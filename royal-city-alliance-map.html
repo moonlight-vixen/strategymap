@@ -877,11 +877,16 @@ function openPopupFor(el, clientX, clientY) {
   }
 
   popup.classList.add('active');
+  const popW = popup.offsetWidth || 210, popH = popup.offsetHeight || 260;
+  const margin = 8;
   let left = clientX + 10;
   let top = clientY + 10;
-  const popW = 210, popH = popup.offsetHeight || 220;
-  if (left + popW > window.innerWidth) left = clientX - popW - 10;
-  if (top + popH > window.innerHeight) top = Math.max(6, window.innerHeight - popH - 6);
+  // Flip to the other side of the tap point if the default placement would run off that edge
+  if (left + popW > window.innerWidth - margin) left = clientX - popW - 10;
+  if (top + popH > window.innerHeight - margin) top = clientY - popH - 10;
+  // Final safety clamp so the popup is always fully on-screen, no matter where the tap was
+  left = Math.min(Math.max(left, margin), Math.max(margin, window.innerWidth - popW - margin));
+  top = Math.min(Math.max(top, margin), Math.max(margin, window.innerHeight - popH - margin));
   popup.style.left = left + 'px';
   popup.style.top = top + 'px';
 }
@@ -896,14 +901,6 @@ document.querySelectorAll('.province').forEach((el) => {
   });
 
   el.addEventListener('mousemove', (e) => {
-    tooltip.style.display = 'block';
-    let left = e.clientX + 14;
-    let top = e.clientY + 14;
-    const ttW = tooltip.offsetWidth || 160, ttH = tooltip.offsetHeight || 50;
-    if (left + ttW > window.innerWidth) left = e.clientX - ttW - 14;
-    if (top + ttH > window.innerHeight) top = e.clientY - ttH - 14;
-    tooltip.style.left = left + 'px';
-    tooltip.style.top = top + 'px';
     const st = state[idx];
     let statusHtml = '';
     if (st && st.status === 'owned') statusHtml = '<div class="tt-status" style="color:#2ecc71;">Owned</div>';
@@ -912,6 +909,18 @@ document.querySelectorAll('.province').forEach((el) => {
     else if (st && st.status === 'allyTarget') statusHtml = '<div class="tt-status" style="color:#1f618d;">Ally-Planned</div>';
     else if (st && st.status === 'enemy') statusHtml = `<div class="tt-status" style="color:#c0392b;">Enemy: ${getLabel(st)}</div>`;
     tooltip.innerHTML = `<div class="tt-name">${el.dataset.name}</div><div class="tt-lvl">Level ${el.dataset.level} &middot; ${el.dataset.out}</div>${statusHtml}`;
+
+    tooltip.style.display = 'block';
+    const ttW = tooltip.offsetWidth || 160, ttH = tooltip.offsetHeight || 50;
+    const margin = 8;
+    let left = e.clientX + 14;
+    let top = e.clientY + 14;
+    if (left + ttW > window.innerWidth - margin) left = e.clientX - ttW - 14;
+    if (top + ttH > window.innerHeight - margin) top = e.clientY - ttH - 14;
+    left = Math.min(Math.max(left, margin), Math.max(margin, window.innerWidth - ttW - margin));
+    top = Math.min(Math.max(top, margin), Math.max(margin, window.innerHeight - ttH - margin));
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
   });
   el.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
 });
@@ -1108,10 +1117,6 @@ const MIN_SCALE = 1, MAX_SCALE = 4;
 function applyMapTransform() {
   mapSvg.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
   resetViewBtn.classList.toggle('visible', zoomScale > 1.01);
-  // At default zoom, leave single-finger vertical swipes free for normal page scroll
-  // (so the Alliance Summary chart below the map stays reachable). Once zoomed in,
-  // claim single-finger gestures for panning the map instead.
-  mapSvg.style.touchAction = zoomScale > 1.01 ? 'none' : 'pan-y';
 }
 
 function clampPan() {
@@ -1127,6 +1132,18 @@ resetViewBtn.addEventListener('click', () => {
   applyMapTransform();
 });
 
+// Rotating the phone changes the viewport dimensions the current pan/zoom was computed
+// against, which can leave the map looking shifted or oddly cropped. Snap back to a clean,
+// correctly-fitted view whenever the viewport itself changes size.
+window.addEventListener('orientationchange', () => {
+  zoomScale = 1; panX = 0; panY = 0;
+  applyMapTransform();
+});
+window.addEventListener('resize', () => {
+  zoomScale = 1; panX = 0; panY = 0;
+  applyMapTransform();
+});
+
 function touchDistance(t0, t1) {
   return Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
 }
@@ -1134,62 +1151,52 @@ function touchMidpoint(t0, t1, rect) {
   return { x: (t0.clientX + t1.clientX) / 2 - rect.left, y: (t0.clientY + t1.clientY) / 2 - rect.top };
 }
 
+// Single-finger touches are never claimed here — CSS touch-action:pan-y always leaves them
+// free for normal page scrolling (and taps still open the status popup as usual). Only a
+// two-finger touch is treated as a map gesture, and it handles pinch-zoom and panning
+// together (like any standard pinch-zoom-drag), so you can always get back to plain
+// one-finger scrolling — including scrolling past the map to reach the chart below —
+// no matter how zoomed in you are.
 let gesture = null;
 let gestureMoved = false;
 
 container.addEventListener('touchstart', (e) => {
-  const rect = container.getBoundingClientRect();
   if (e.touches.length === 2) {
+    const rect = container.getBoundingClientRect();
+    const mid = touchMidpoint(e.touches[0], e.touches[1], rect);
     gestureMoved = false;
     gesture = {
-      mode: 'pinch',
       startDist: touchDistance(e.touches[0], e.touches[1]),
       startScale: zoomScale,
-      midpoint: touchMidpoint(e.touches[0], e.touches[1], rect),
-      startPanX: panX, startPanY: panY
+      // the content-space point that's currently under the fingers — stays fixed under
+      // them as the gesture proceeds, whether that's from zooming, dragging, or both at once
+      contentX: (mid.x - panX) / zoomScale,
+      contentY: (mid.y - panY) / zoomScale
     };
-  } else if (e.touches.length === 1) {
-    gestureMoved = false;
-    gesture = {
-      mode: 'pan',
-      startX: e.touches[0].clientX,
-      startY: e.touches[0].clientY,
-      startPanX: panX, startPanY: panY
-    };
+  } else {
+    gesture = null;
   }
 }, { passive: true });
 
 container.addEventListener('touchmove', (e) => {
-  if (!gesture) return;
-  if (gesture.mode === 'pinch' && e.touches.length === 2) {
-    e.preventDefault();
-    const dist = touchDistance(e.touches[0], e.touches[1]);
-    let newScale = gesture.startScale * (dist / gesture.startDist);
-    newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
-    const m = gesture.midpoint;
-    panX = m.x - (m.x - gesture.startPanX) * (newScale / gesture.startScale);
-    panY = m.y - (m.y - gesture.startPanY) * (newScale / gesture.startScale);
-    zoomScale = newScale;
-    clampPan();
-    applyMapTransform();
-    gestureMoved = true;
-  } else if (gesture.mode === 'pan' && e.touches.length === 1) {
-    const dx = e.touches[0].clientX - gesture.startX;
-    const dy = e.touches[0].clientY - gesture.startY;
-    if (Math.hypot(dx, dy) > 6) gestureMoved = true;
-    if (zoomScale > 1.01 && gestureMoved) {
-      e.preventDefault();
-      panX = gesture.startPanX + dx;
-      panY = gesture.startPanY + dy;
-      clampPan();
-      applyMapTransform();
-    }
-  }
+  if (!gesture || e.touches.length !== 2) return;
+  e.preventDefault();
+  const rect = container.getBoundingClientRect();
+  const dist = touchDistance(e.touches[0], e.touches[1]);
+  const mid = touchMidpoint(e.touches[0], e.touches[1], rect);
+  let newScale = gesture.startScale * (dist / gesture.startDist);
+  newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
+  panX = mid.x - gesture.contentX * newScale;
+  panY = mid.y - gesture.contentY * newScale;
+  zoomScale = newScale;
+  clampPan();
+  applyMapTransform();
+  gestureMoved = true;
 }, { passive: false });
 
-container.addEventListener('touchend', () => {
-  if (gestureMoved) suppressNextClick = true;
-  gesture = null;
+container.addEventListener('touchend', (e) => {
+  if (gestureMoved && e.touches.length === 0) suppressNextClick = true;
+  if (e.touches.length < 2) gesture = null;
 }, { passive: true });
 
 container.addEventListener('wheel', (e) => {
