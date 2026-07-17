@@ -1,4 +1,4 @@
-const CACHE_NAME = 'royal-city-map-v2';
+const CACHE_NAME = 'royal-city-map-v3';
 const ASSETS_TO_CACHE = [
   './royal-city-alliance-map.html',
   './manifest.json',
@@ -15,6 +15,14 @@ self.addEventListener('install', (event) => {
       .then((cache) => cache.addAll(ASSETS_TO_CACHE))
       .then(() => self.skipWaiting())
   );
+});
+
+// Let the page (via the "Check for Updates" button) force an already-installed,
+// waiting service worker to activate immediately rather than waiting for all tabs to close.
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Activate: clean up old cache versions
