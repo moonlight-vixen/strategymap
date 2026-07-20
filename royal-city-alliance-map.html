@@ -63,6 +63,13 @@
     font-size:11px; color:#6b6355; text-transform:uppercase; letter-spacing:1px;
     font-weight:700; margin:0 0 12px 2px;
   }
+  .update-btn{
+    display:block; width:100%; text-align:center; padding:12px 16px;
+    border-radius:10px; border:1px solid #6b6355; background:transparent;
+    color:#cbc3b5; font-family:inherit; font-size:13px; cursor:pointer; transition:all .15s ease;
+  }
+  .update-btn:hover{ background:#6b6355; color:#fff; }
+  .update-msg{ font-size:11.5px; color:#9c9488; margin-top:8px; text-align:center; min-height:16px; }
 
 </style>
 </head>
@@ -81,7 +88,68 @@
   <a class="home-btn" href="hero-guide.html">⚔️ Hero Guide</a>
   <a class="home-btn" href="sanctuary-upgrades.html">🏰 Sanctuary Guide</a>
 
+  <div class="section-divider"></div>
+  <button class="update-btn" id="checkUpdateBtn">⟳ Check for Updates</button>
+  <div id="updateMsg" class="update-msg"></div>
+
 </div>
+
+<script>
+let swRegistration = null;
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then((reg) => { swRegistration = reg; })
+      .catch((err) => {
+        console.warn('Service worker registration failed (expected if opened via file://):', err);
+      });
+  });
+
+  let reloadedOnce = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloadedOnce) return;
+    reloadedOnce = true;
+    window.location.reload();
+  });
+}
+
+const checkUpdateBtn = document.getElementById('checkUpdateBtn');
+const updateMsg = document.getElementById('updateMsg');
+
+checkUpdateBtn.addEventListener('click', async () => {
+  if (!('serviceWorker' in navigator)) {
+    updateMsg.textContent = 'Not available in this browser';
+    updateMsg.style.color = '#c0392b';
+    return;
+  }
+  updateMsg.textContent = 'Checking…';
+  updateMsg.style.color = '#9c9488';
+  try {
+    const reg = swRegistration || await navigator.serviceWorker.getRegistration();
+    if (!reg) {
+      updateMsg.textContent = 'No service worker registered yet';
+      updateMsg.style.color = '#c0392b';
+      return;
+    }
+    await reg.update();
+    setTimeout(() => {
+      if (reg.waiting) {
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        updateMsg.textContent = 'Update found — reloading…';
+        updateMsg.style.color = '#2ecc71';
+      } else {
+        updateMsg.textContent = 'Already up to date ✓';
+        updateMsg.style.color = '#2ecc71';
+        setTimeout(() => { updateMsg.textContent = ''; }, 3000);
+      }
+    }, 1200);
+  } catch (err) {
+    updateMsg.textContent = 'Check failed — try again later';
+    updateMsg.style.color = '#c0392b';
+  }
+});
+</script>
 
 </body>
 </html>

@@ -818,9 +818,6 @@
       </div>
       <input type="file" id="importFile" accept="application/json" style="display:none">
       <div id="importMsg" class="import-msg"></div>
-      <div class="legend-divider"></div>
-      <button class="action-btn" id="checkUpdateBtn">⟳ Check for Updates</button>
-      <div id="updateMsg" class="import-msg"></div>
     </div>
   </aside>
 </div>
@@ -1219,10 +1216,6 @@ const MIN_SCALE = 1, MAX_SCALE = 4;
 function applyMapTransform() {
   mapSvg.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
   resetViewBtn.classList.toggle('visible', zoomScale > 1.01);
-  // At default zoom, leave single-finger touches free for normal page scroll (so the
-  // chart below the map stays reachable). Once zoomed in, claim single-finger drags
-  // for panning around the map instead — tap Reset View to get page-scroll back.
-  mapSvg.style.touchAction = zoomScale > 1.01 ? 'none' : 'pan-y';
 }
 
 function clampPan() {
@@ -1257,11 +1250,10 @@ function touchMidpoint(t0, t1, rect) {
   return { x: (t0.clientX + t1.clientX) / 2 - rect.left, y: (t0.clientY + t1.clientY) / 2 - rect.top };
 }
 
-// Two fingers always handles pinch-zoom + pan together. A single finger pans the map
-// too, but only once you've zoomed in — at default zoom, single-finger touches are left
-// free (via CSS touch-action:pan-y) for normal page scrolling, so the chart below the map
-// stays reachable. Tap Reset View any time to snap back to scale 1 and get plain
-// page-scrolling back.
+// Single-finger touches are never claimed here — they're always free for normal page
+// scrolling (and taps still open the status popup as usual), so the chart below the map
+// stays reachable no matter what. Two-finger touches handle pinch-zoom and panning
+// together (like a standard pinch-zoom-drag).
 let gesture = null;
 let gestureMoved = false;
 
@@ -1271,7 +1263,6 @@ container.addEventListener('touchstart', (e) => {
     const rect = container.getBoundingClientRect();
     const mid = touchMidpoint(e.touches[0], e.touches[1], rect);
     gesture = {
-      mode: 'pinch',
       startDist: touchDistance(e.touches[0], e.touches[1]),
       startScale: zoomScale,
       // the content-space point that's currently under the fingers — stays fixed under
@@ -1279,44 +1270,25 @@ container.addEventListener('touchstart', (e) => {
       contentX: (mid.x - panX) / zoomScale,
       contentY: (mid.y - panY) / zoomScale
     };
-  } else if (e.touches.length === 1 && zoomScale > 1.01) {
-    gesture = {
-      mode: 'pan1',
-      startX: e.touches[0].clientX,
-      startY: e.touches[0].clientY,
-      startPanX: panX,
-      startPanY: panY
-    };
   } else {
     gesture = null;
   }
 }, { passive: true });
 
 container.addEventListener('touchmove', (e) => {
-  if (!gesture) return;
-  if (gesture.mode === 'pinch' && e.touches.length === 2) {
-    e.preventDefault();
-    const rect = container.getBoundingClientRect();
-    const dist = touchDistance(e.touches[0], e.touches[1]);
-    const mid = touchMidpoint(e.touches[0], e.touches[1], rect);
-    let newScale = gesture.startScale * (dist / gesture.startDist);
-    newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
-    panX = mid.x - gesture.contentX * newScale;
-    panY = mid.y - gesture.contentY * newScale;
-    zoomScale = newScale;
-    clampPan();
-    applyMapTransform();
-    gestureMoved = true;
-  } else if (gesture.mode === 'pan1' && e.touches.length === 1) {
-    e.preventDefault();
-    const dx = e.touches[0].clientX - gesture.startX;
-    const dy = e.touches[0].clientY - gesture.startY;
-    if (Math.hypot(dx, dy) > 6) gestureMoved = true;
-    panX = gesture.startPanX + dx;
-    panY = gesture.startPanY + dy;
-    clampPan();
-    applyMapTransform();
-  }
+  if (!gesture || e.touches.length !== 2) return;
+  e.preventDefault();
+  const rect = container.getBoundingClientRect();
+  const dist = touchDistance(e.touches[0], e.touches[1]);
+  const mid = touchMidpoint(e.touches[0], e.touches[1], rect);
+  let newScale = gesture.startScale * (dist / gesture.startDist);
+  newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
+  panX = mid.x - gesture.contentX * newScale;
+  panY = mid.y - gesture.contentY * newScale;
+  zoomScale = newScale;
+  clampPan();
+  applyMapTransform();
+  gestureMoved = true;
 }, { passive: false });
 
 container.addEventListener('touchend', (e) => {
@@ -1362,44 +1334,6 @@ if ('serviceWorker' in navigator) {
     window.location.reload();
   });
 }
-
-const checkUpdateBtn = document.getElementById('checkUpdateBtn');
-const updateMsg = document.getElementById('updateMsg');
-
-checkUpdateBtn.addEventListener('click', async () => {
-  if (!('serviceWorker' in navigator)) {
-    updateMsg.textContent = 'Not available in this browser';
-    updateMsg.style.color = '#c0392b';
-    return;
-  }
-  updateMsg.textContent = 'Checking…';
-  updateMsg.style.color = '#9c9488';
-  try {
-    const reg = swRegistration || await navigator.serviceWorker.getRegistration();
-    if (!reg) {
-      updateMsg.textContent = 'No service worker registered yet';
-      updateMsg.style.color = '#c0392b';
-      return;
-    }
-    await reg.update();
-    // Give the browser a moment to finish installing anything it found
-    setTimeout(() => {
-      if (reg.waiting) {
-        // A new version installed and is waiting to take over — activate it now.
-        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-        updateMsg.textContent = 'Update found — reloading…';
-        updateMsg.style.color = '#2ecc71';
-      } else {
-        updateMsg.textContent = 'Already up to date ✓';
-        updateMsg.style.color = '#2ecc71';
-        setTimeout(() => { updateMsg.textContent = ''; }, 3000);
-      }
-    }, 1200);
-  } catch (err) {
-    updateMsg.textContent = 'Check failed — try again later';
-    updateMsg.style.color = '#c0392b';
-  }
-});
 </script>
 
 </body>
