@@ -217,8 +217,15 @@
     display:block; width:100%; text-align:center; padding:8px 10px; margin-bottom:6px;
     border-radius:5px; border:1px solid #6b6355; background:transparent; color:#cbc3b5;
     font-family:inherit; font-size:12px; letter-spacing:.3px; cursor:pointer; transition:all .15s ease;
+    box-sizing:border-box;
   }
   .action-btn:hover{ background:#6b6355; color:#fff; }
+  .action-btn.nav-link{ border-color:#7a6635; color:#e8c77a; }
+  .action-btn.nav-link:hover{ background:#4a3d1f; color:#fff; }
+  .drawer-section-label{
+    font-size:10.5px; color:#6b6355; text-transform:uppercase; letter-spacing:.8px;
+    margin:0 0 6px 2px; font-weight:700;
+  }
   .import-msg{ font-size:11px; color:#9c9488; margin-top:4px; min-height:14px; }
   .swatch{ width:14px; height:14px; border-radius:3px; flex-shrink:0; border:1px solid rgba(0,0,0,.3); }
   .status-popup{
@@ -755,6 +762,9 @@
       <div class="legend-item"><svg width="14" height="14" style="vertical-align:middle; border-radius:3px; border:1px solid rgba(0,0,0,.3);"><rect width="14" height="14" fill="url(#hatchTarget)"></rect></svg>Planned Target <span class="count" id="legendTargetCount">(0)</span></div>
       <div class="legend-item"><span class="swatch" style="background:var(--allyOwned)"></span>Ally-Owned <span class="count" id="legendAllyOwnedCount">(0)</span></div>
       <div class="legend-item"><svg width="14" height="14" style="vertical-align:middle; border-radius:3px; border:1px solid rgba(0,0,0,.3);"><rect width="14" height="14" fill="url(#hatchAllyTarget)"></rect></svg>Ally-Planned <span class="count" id="legendAllyTargetCount">(0)</span></div>
+      <div class="legend-divider"></div>
+      <div class="drawer-section-label">Guides</div>
+      <a class="action-btn nav-link" href="sanctuary-upgrades.html">📖 Sanctuary Upgrade Guide</a>
       <div class="legend-divider"></div>
       <button class="action-btn" id="exportBtn">⬇ Export Territories</button>
       <button class="action-btn" id="importBtn">⬆ Import Territories</button>
