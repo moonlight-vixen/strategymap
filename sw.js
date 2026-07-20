@@ -1,4 +1,4 @@
-const CACHE_NAME = 'royal-city-map-v26';
+const CACHE_NAME = 'royal-city-map-v27';
 const ASSETS_TO_CACHE = [
   './royal-city-alliance-map.html',
   './territory-map.html',
