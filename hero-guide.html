@@ -57,29 +57,46 @@
     color:#9c9488; font-size:13px; margin:0 0 16px;
   }
 
-  .controls{
-    display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;
-  }
+  .controls{ margin-bottom:18px; }
   #searchInput{
-    flex:1; min-width:160px;
+    width:100%;
     background:#171f1b; border:1px solid #2a3f37; color:#f4efe4;
     padding:9px 12px; border-radius:8px; font-family:inherit; font-size:13px;
+    margin-bottom:12px;
   }
   #searchInput:focus{ outline:none; border-color:#e8c77a; }
+
+  .filter-group{ margin-bottom:10px; }
+  .filter-group-label{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.6px; color:#6b6355;
+    font-weight:700; margin:0 0 6px 2px;
+  }
+  .filter-row{ display:flex; gap:6px; flex-wrap:wrap; }
   .filter-btn{
     background:#171f1b; border:1px solid #2a3f37; color:#cbc3b5;
-    padding:9px 12px; border-radius:8px; font-family:inherit; font-size:12px; cursor:pointer;
+    padding:7px 12px; border-radius:8px; font-family:inherit; font-size:11.5px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:5px;
   }
   .filter-btn.active{ background:#e8c77a; color:#2a2416; border-color:#e8c77a; font-weight:700; }
+  .filter-icon{ width:15px; height:15px; border-radius:4px; flex-shrink:0; }
+  .rarity-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
 
-  .hero-grid{ display:flex; flex-direction:column; gap:10px; }
+  .hero-grid{ display:flex; flex-direction:column; gap:10px; margin-top:18px; }
   .hero-card{
     background:#171f1b; border:1px solid #2a3f37; border-radius:10px; overflow:hidden;
   }
   .hero-card.hidden{ display:none; }
+
+  .hero-card.rarity-ur .hero-card-head{ background:linear-gradient(135deg, rgba(227,168,76,.4), rgba(227,168,76,.08)); border-bottom:1px solid rgba(227,168,76,.55); }
+  .hero-card.rarity-ssr .hero-card-head{ background:linear-gradient(135deg, rgba(167,79,215,.4), rgba(167,79,215,.08)); border-bottom:1px solid rgba(167,79,215,.55); }
+  .hero-card.rarity-sr .hero-card-head{ background:linear-gradient(135deg, rgba(99,151,209,.4), rgba(99,151,209,.08)); border-bottom:1px solid rgba(99,151,209,.55); }
+  .hero-card.open.rarity-ur .hero-card-head{ border-bottom-color:transparent; }
+  .hero-card.open.rarity-ssr .hero-card-head{ border-bottom-color:transparent; }
+  .hero-card.open.rarity-sr .hero-card-head{ border-bottom-color:transparent; }
+
   .hero-card-head{
     width:100%; display:flex; align-items:center; gap:12px; padding:12px;
-    background:none; border:none; color:inherit; cursor:pointer; text-align:left;
+    border:none; color:inherit; cursor:pointer; text-align:left;
     font-family:inherit;
   }
   .hero-portrait{
@@ -93,9 +110,10 @@
   .hero-card-info{ flex:1; min-width:0; }
   .hero-name-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .hero-name{ font-size:15px; font-weight:700; color:#f4efe4; }
-  .rarity-badge{ font-size:10px; font-weight:700; padding:2px 8px; border-radius:9px; letter-spacing:.3px; }
-  .hero-tags{ display:flex; gap:6px; margin-top:3px; }
-  .tag{ font-size:10.5px; color:#9c9488; background:#1c2620; border:1px solid #2a3f37; padding:1px 7px; border-radius:6px; }
+  .tag.tag-rarity{ font-weight:700; }
+  .hero-tags{ display:flex; gap:6px; margin-top:4px; flex-wrap:wrap; align-items:center; }
+  .tag{ font-size:10.5px; color:#9c9488; background:#1c2620; border:1px solid #2a3f37; padding:1px 7px; border-radius:6px; display:inline-flex; align-items:center; gap:4px; }
+  .tag-icon{ width:13px; height:13px; border-radius:3px; flex-shrink:0; }
   .hero-stats{ display:flex; gap:10px; margin-top:5px; flex-wrap:wrap; }
   .stat{ font-size:11px; color:#cbc3b5; }
   .expand-chevron{ flex-shrink:0; color:#6b6355; font-size:14px; transition:transform .2s ease; }
@@ -103,11 +121,10 @@
 
   .hero-card-body{
     max-height:0; overflow:hidden; transition:max-height .25s ease;
-    border-top:1px solid #2a3f37;
   }
   .hero-card.open .hero-card-body{ max-height:2000px; }
   .skills-wrap{ padding:14px 14px 4px; display:flex; flex-direction:column; gap:12px; }
-  .skill-block{ background:#12100d; background:#141a17; border-radius:8px; padding:10px 12px; }
+  .skill-block{ background:#141a17; border-radius:8px; padding:10px 12px; }
   .skill-block.empty{ opacity:.55; }
   .skill-head{ font-size:13px; margin-bottom:3px; }
   .skill-icon{ margin-right:4px; }
@@ -126,7 +143,7 @@
   .no-results{ text-align:center; color:#6b6355; font-size:13px; padding:30px 0; display:none; }
 
   @media (max-width:640px){
-    .topbar h1{ font-size:15px; }
+    .page-title{ font-size:17px; }
     .hero-stats{ gap:8px; }
   }
 </style>
@@ -143,77 +160,51 @@
 
   <div class="controls">
     <input type="text" id="searchInput" placeholder="Search hero, faction, or class…">
-    <button class="filter-btn active" data-filter="all">All</button>
-    <button class="filter-btn" data-filter="carry">Carry</button>
-    <button class="filter-btn" data-filter="tank">Tank</button>
-    <button class="filter-btn" data-filter="support">Support</button>
+
+    <div class="filter-group">
+      <div class="filter-group-label">Class</div>
+      <div class="filter-row" id="classFilters">
+        <button class="filter-btn active" data-group="class" data-filter="all">All</button>
+        <button class="filter-btn" data-group="class" data-filter="carry"><img class="filter-icon" src="indicator-icons/class-carry.png" alt="">Carry</button>
+        <button class="filter-btn" data-group="class" data-filter="tank"><img class="filter-icon" src="indicator-icons/class-tank.png" alt="">Tank</button>
+        <button class="filter-btn" data-group="class" data-filter="support"><img class="filter-icon" src="indicator-icons/class-support.png" alt="">Support</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group-label">Faction</div>
+      <div class="filter-row" id="factionFilters">
+        <button class="filter-btn active" data-group="faction" data-filter="all">All</button>
+        <button class="filter-btn" data-group="faction" data-filter="warrior"><img class="filter-icon" src="indicator-icons/faction-warrior.png" alt="">Warrior</button>
+        <button class="filter-btn" data-group="faction" data-filter="ranger"><img class="filter-icon" src="indicator-icons/faction-ranger.png" alt="">Ranger</button>
+        <button class="filter-btn" data-group="faction" data-filter="warlock"><img class="filter-icon" src="indicator-icons/faction-warlock.png" alt="">Warlock</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group-label">Rarity</div>
+      <div class="filter-row" id="rarityFilters">
+        <button class="filter-btn active" data-group="rarity" data-filter="all">All</button>
+        <button class="filter-btn" data-group="rarity" data-filter="ur"><span class="rarity-dot" style="background:#e3a84c;"></span>UR (Gold)</button>
+        <button class="filter-btn" data-group="rarity" data-filter="ssr"><span class="rarity-dot" style="background:#a74fd7;"></span>SSR (Pink)</button>
+        <button class="filter-btn" data-group="rarity" data-filter="sr"><span class="rarity-dot" style="background:#6397d1;"></span>SR (Blue)</button>
+      </div>
+    </div>
   </div>
 
   <div class="hero-grid" id="heroGrid">
 
-      <div class="hero-card" data-name="marlena" data-faction="warrior" data-class="carry">
-        <button class="hero-card-head" type="button">
-          <img src="hero-images/hero-marlena.jpg" alt="Marlena" class="hero-portrait" loading="lazy">
-          <div class="hero-card-info">
-            <div class="hero-name-row">
-              <span class="hero-name">Marlena</span>
-              <span class="rarity-badge" style="background:#e8c77a;color:#2a2416;">UR (Gold)</span>
-            </div>
-            <div class="hero-tags">
-              <span class="tag tag-faction">Warrior</span>
-              <span class="tag tag-class">Carry</span>
-            </div>
-            <div class="hero-stats">
-              <span class="stat">⚔️ 15,971</span>
-              <span class="stat">❤️ 2,236,301</span>
-              <span class="stat">🛡️ 15,971</span>
-              <span class="stat">🎖️ 350</span>
-            </div>
-          </div>
-          <span class="expand-chevron">&#9662;</span>
-        </button>
-        <div class="hero-card-body">
-          <div class="skills-wrap">
-            <div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">🗡️</span><span class="skill-label">Auto Attack:</span> <span class="skill-name">Skybreaker Slash</span></div>
-              <div class="skill-meta">No cooldown &middot; Energy DMG</div>
-              <ul class="skill-tiers"><li>1⭐: Deals 40% Extra dmg.</li><li>5⭐: Extra dmg increases to 100%.</li><li>10⭐: Extra dmg increases to 200%</li></ul>
-            </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">💥</span><span class="skill-label">Ultimate:</span> <span class="skill-name">Peerless Blade</span></div>
-              <div class="skill-meta">CD: 13.6 &middot; Energy DMG</div>
-              <ul class="skill-tiers"><li>2⭐: Sword Wind +1; each deals 20% extra dmg</li><li>6⭐: Each deals 100% extra dmg</li><li>10⭐: Sword Wind +1; each deals 140% extra dmg</li></ul>
-            </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">⚡</span><span class="skill-label">Active:</span> <span class="skill-name">Crimson Bloom</span></div>
-              <div class="skill-meta">CD: 4.5s &middot; Energy DMG</div>
-              <ul class="skill-tiers"><li>3⭐: Deals 20% extra dm,  increases ATK by 12% for 3s</li><li>7⭐: Extra dmg increases to 70%.</li><li>10⭐: Extra dmg increases to 150%</li></ul>
-            </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">🌀</span><span class="skill-label">Passive:</span> <span class="skill-name">War God's Will</span></div>
-              <div class="skill-meta">No cooldown</div>
-              <ul class="skill-tiers"><li>4⭐: Effect increases by 1.6%</li><li>9⭐: Effect increases by 2.4%</li><li>10⭐: Effect increases by 4%</li></ul>
-            </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">🤝</span><span class="skill-label">Support:</span> <span class="skill-name">Tenacity</span></div>
-              <div class="skill-meta">No cooldown</div>
-              <ul class="skill-tiers"><li>Unlocks at Hero Level 30 and 8⭐</li></ul>
-            </div>
-          </div>
-          <div class="gear-section">
-            <div class="gear-title">Gear Priority</div>
-            <div class="gear-empty">Gear priorities not documented yet — check back as data is added.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="hero-card" data-name="annie" data-faction="warlock" data-class="carry">
+      <div class="hero-card rarity-ur" data-name="annie" data-faction="warlock" data-class="carry" data-rarity="ur">
         <button class="hero-card-head" type="button">
           <img src="hero-images/hero-annie.jpg" alt="Annie" class="hero-portrait" loading="lazy">
           <div class="hero-card-info">
             <div class="hero-name-row">
               <span class="hero-name">Annie</span>
-              <span class="rarity-badge" style="background:#e8c77a;color:#2a2416;">UR (Gold)</span>
             </div>
             <div class="hero-tags">
-              <span class="tag tag-faction">Warlock</span>
-              <span class="tag tag-class">Carry</span>
+              <span class="tag tag-rarity"><span class="rarity-dot" style="background:#e3a84c;"></span>UR (Gold)</span>
+              <span class="tag tag-faction"><img class="tag-icon" src="indicator-icons/faction-warlock.png" alt="">Warlock</span>
+              <span class="tag tag-class"><img class="tag-icon" src="indicator-icons/class-carry.png" alt="">Carry</span>
             </div>
             <div class="hero-stats">
               <span class="stat">⚔️ 15,971</span>
@@ -231,13 +222,13 @@
               <div class="skill-meta">No cooldown &middot; Energy DMG</div>
               <ul class="skill-tiers"><li>1⭐: Deals 40% Extra Damage</li><li>5⭐: Extra damage increases to 100%</li><li>10⭐: Extra damage increases to 200%</li></ul>
             </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">💥</span><span class="skill-label">Ultimate:</span> <span class="skill-name">Candy Jar</span></div>
-              <div class="skill-meta">CD: 13.6s &middot; Energy DMG</div>
-              <ul class="skill-tiers"><li>2⭐: Attack Target +1</li><li>6⭐: If the target is Burning, deals an additional 900% Attack Damage once</li><li>10⭐: Deals 200% extra damage</li></ul>
-            </div><div class="skill-block">
               <div class="skill-head"><span class="skill-icon">⚡</span><span class="skill-label">Active:</span> <span class="skill-name">Candy Jar</span></div>
               <div class="skill-meta">CD: 4.1s &middot; Energy DMG</div>
               <ul class="skill-tiers"><li>3⭐: Burning Duration +2s</li><li>7⭐: Deals 100% extra damage</li><li>10⭐: Extra damage increases to 200%</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">💥</span><span class="skill-label">Ultimate:</span> <span class="skill-name">Candy Jar</span></div>
+              <div class="skill-meta">CD: 13.6s &middot; Energy DMG</div>
+              <ul class="skill-tiers"><li>2⭐: Attack Target +1</li><li>6⭐: If the target is Burning, deals an additional 900% Attack Damage once</li><li>10⭐: Deals 200% extra damage</li></ul>
             </div><div class="skill-block">
               <div class="skill-head"><span class="skill-icon">🌀</span><span class="skill-label">Passive:</span> <span class="skill-name">Charmed Gummies</span></div>
               <div class="skill-meta">No cooldown</div>
@@ -248,128 +239,20 @@
               <ul class="skill-tiers"><li>Unlocks at Hero Level 30 and 8⭐</li></ul>
             </div>
           </div>
-          <div class="gear-section">
-            <div class="gear-title">Gear Priority</div>
-            <div class="gear-empty">Gear priorities not documented yet — check back as data is added.</div>
-          </div>
         </div>
       </div>
 
-      <div class="hero-card" data-name="jester" data-faction="warlock" data-class="carry">
-        <button class="hero-card-head" type="button">
-          <img src="hero-images/hero-jester.jpg" alt="Jester" class="hero-portrait" loading="lazy">
-          <div class="hero-card-info">
-            <div class="hero-name-row">
-              <span class="hero-name">Jester</span>
-              <span class="rarity-badge" style="background:#e8c77a;color:#2a2416;">UR (Gold)</span>
-            </div>
-            <div class="hero-tags">
-              <span class="tag tag-faction">Warlock</span>
-              <span class="tag tag-class">Carry</span>
-            </div>
-            <div class="hero-stats">
-              <span class="stat">⚔️ 15,971</span>
-              <span class="stat">❤️ 2,236,301</span>
-              <span class="stat">🛡️ 15,971</span>
-              <span class="stat">🎖️ 350</span>
-            </div>
-          </div>
-          <span class="expand-chevron">&#9662;</span>
-        </button>
-        <div class="hero-card-body">
-          <div class="skills-wrap">
-            <div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">🗡️</span><span class="skill-label">Auto Attack:</span> <span class="skill-name">Deal Cards</span></div>
-              <div class="skill-meta">Auto Attack &middot; No cooldown &middot; Physical DMG</div>
-              <ul class="skill-tiers"><li>1⭐: Deals 40% Extra Damage.</li><li>5⭐: Extra damage increases to 100%.</li><li>10⭐: Extra damage increases to 200%.</li></ul>
-            </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">💥</span><span class="skill-label">Ultimate:</span> <span class="skill-name">Candy Jar</span></div>
-              <div class="skill-meta">Ultimate Skill &middot; CD: 13.6s &middot; Physical DMG</div>
-              <ul class="skill-tiers"><li>2⭐: Deals 40% extra damage.</li><li>6⭐: Extra damage increases to 100%.</li><li>10⭐: Attack Target +1.</li></ul>
-            </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">⚡</span><span class="skill-label">Active:</span> <span class="skill-name">Hearthunt Red Card</span></div>
-              <div class="skill-meta">Active Skill &middot; CD: 4.5s &middot; Physical DMG</div>
-              <ul class="skill-tiers"><li>3⭐: Deals 40% extra damage.</li><li>7⭐: Extra damage increases to 100%.</li><li>10⭐: Inflicts [Burn] on the target, dealing 400% Attack Damage per second for 3s.</li></ul>
-            </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">🌀</span><span class="skill-label">Passive:</span> <span class="skill-name">Frenzied Emotion</span></div>
-              <div class="skill-meta">Passive Skill &middot; No cooldown</div>
-              <ul class="skill-tiers"><li>4⭐: Effect increases by 1.6%.</li><li>9⭐: Effect increases by 2.4%.</li><li>10⭐: Effect increases by 4%.</li></ul>
-            </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">🤝</span><span class="skill-label">Support:</span> <span class="skill-name">Tenacity</span></div>
-              <div class="skill-meta">No cooldown</div>
-              <ul class="skill-tiers"><li>Unlocks at Hero Level 30 and 8⭐</li></ul>
-            </div>
-          </div>
-          <div class="gear-section">
-            <div class="gear-title">Gear Priority</div>
-            <div class="gear-empty">Gear priorities not documented yet — check back as data is added.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="hero-card" data-name="red lady" data-faction="ranger" data-class="carry">
-        <button class="hero-card-head" type="button">
-          <img src="hero-images/hero-red-lady.jpg" alt="Red Lady" class="hero-portrait" loading="lazy">
-          <div class="hero-card-info">
-            <div class="hero-name-row">
-              <span class="hero-name">Red Lady</span>
-              <span class="rarity-badge" style="background:#e8c77a;color:#2a2416;">UR (Gold)</span>
-            </div>
-            <div class="hero-tags">
-              <span class="tag tag-faction">Ranger</span>
-              <span class="tag tag-class">Carry</span>
-            </div>
-            <div class="hero-stats">
-              <span class="stat">⚔️ 15,971</span>
-              <span class="stat">❤️ 2,236,301</span>
-              <span class="stat">🛡️ 15,971</span>
-              <span class="stat">🎖️ 350</span>
-            </div>
-          </div>
-          <span class="expand-chevron">&#9662;</span>
-        </button>
-        <div class="hero-card-body">
-          <div class="skills-wrap">
-            <div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">🗡️</span><span class="skill-label">Auto Attack:</span> <span class="skill-name">Blood Blade</span></div>
-              <div class="skill-meta">Auto Attack &middot; No cooldown &middot; Energy DMG</div>
-              <ul class="skill-tiers"><li>1⭐: Deals 40% Extra Damage.</li><li>5⭐: Extra damage increases to 100%.</li><li>10⭐: Extra damage increases to 200%.</li></ul>
-            </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">💥</span><span class="skill-label">Ultimate:</span> <span class="skill-name">Crimson Rose</span></div>
-              <div class="skill-meta">Ultimate Skill &middot; CD: 13.6s &middot; Energy DMG</div>
-              <ul class="skill-tiers"><li>2⭐: Deals 40% extra damage</li><li>6⭐: Attack Target +1</li><li>10⭐: Extra damage increases to 140%</li></ul>
-            </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">⚡</span><span class="skill-label">Active:</span> <span class="skill-name">Bloodthirsty Slaughter</span></div>
-              <div class="skill-meta">Active Skill &middot; CD: 4.5s &middot; Energy DMG</div>
-              <ul class="skill-tiers"><li>3⭐: Deals 40% Extra Damage.</li><li>7⭐: Extra damage increases to 100%.</li><li>10⭐: Extra damage increases to 200%.</li></ul>
-            </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">🌀</span><span class="skill-label">Passive:</span> <span class="skill-name">Lone Flower</span></div>
-              <div class="skill-meta">Passive Skill &middot; No cooldown</div>
-              <ul class="skill-tiers"><li>4⭐: Effect increases by 1.6%.</li><li>9⭐: Effect increases by 2.4%.</li><li>10⭐: Effect increases by 4.0%.</li></ul>
-            </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">🤝</span><span class="skill-label">Support:</span> <span class="skill-name">Tenacity</span></div>
-              <div class="skill-meta">No cooldown</div>
-              <ul class="skill-tiers"><li>Unlocks at Hero Level 30 and 8⭐</li></ul>
-            </div>
-          </div>
-          <div class="gear-section">
-            <div class="gear-title">Gear Priority</div>
-            <div class="gear-empty">Gear priorities not documented yet — check back as data is added.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="hero-card" data-name="billy" data-faction="warlock" data-class="tank">
+      <div class="hero-card rarity-ur" data-name="billy" data-faction="warlock" data-class="tank" data-rarity="ur">
         <button class="hero-card-head" type="button">
           <img src="hero-images/hero-billy.jpg" alt="Billy" class="hero-portrait" loading="lazy">
           <div class="hero-card-info">
             <div class="hero-name-row">
               <span class="hero-name">Billy</span>
-              <span class="rarity-badge" style="background:#e8c77a;color:#2a2416;">UR (Gold)</span>
             </div>
             <div class="hero-tags">
-              <span class="tag tag-faction">Warlock</span>
-              <span class="tag tag-class">Tank</span>
+              <span class="tag tag-rarity"><span class="rarity-dot" style="background:#e3a84c;"></span>UR (Gold)</span>
+              <span class="tag tag-faction"><img class="tag-icon" src="indicator-icons/faction-warlock.png" alt="">Warlock</span>
+              <span class="tag tag-class"><img class="tag-icon" src="indicator-icons/class-tank.png" alt="">Tank</span>
             </div>
             <div class="hero-stats">
               <span class="stat">⚔️ 15,971</span>
@@ -387,13 +270,13 @@
               <div class="skill-meta">Auto Attack &middot; No cooldown &middot; Physical DMG</div>
               <ul class="skill-tiers"><li>1⭐: Deals 40% Extra Damage.</li><li>5⭐: Extra damage increases to 100%.</li><li>10⭐: Extra damage increases to 200%.</li></ul>
             </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">💥</span><span class="skill-label">Ultimate:</span> <span class="skill-name">Truth and Lies</span></div>
-              <div class="skill-meta">Ultimate Skill &middot; CD: 6.4s &middot; Physical DMG</div>
-              <ul class="skill-tiers"><li>2⭐: All damage received by allied defense heroes reduces by 15% for 5s.</li><li>6⭐: Chance of stun immunity +30%.</li><li>10⭐: Increases damage dealt on targets by 15% for 5s.</li></ul>
-            </div><div class="skill-block">
               <div class="skill-head"><span class="skill-icon">⚡</span><span class="skill-label">Active:</span> <span class="skill-name">Fate's Thread</span></div>
               <div class="skill-meta">Active Skill &middot; CD: 4.5s &middot; Physical DMG</div>
               <ul class="skill-tiers"><li>3⭐: Damage reduction increases by 6%.</li><li>7⭐: Allied target +1.</li><li>10⭐: Damage reduction increases by 6%.</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">💥</span><span class="skill-label">Ultimate:</span> <span class="skill-name">Truth and Lies</span></div>
+              <div class="skill-meta">Ultimate Skill &middot; CD: 6.4s &middot; Physical DMG</div>
+              <ul class="skill-tiers"><li>2⭐: All damage received by allied defense heroes reduces by 15% for 5s.</li><li>6⭐: Chance of stun immunity +30%.</li><li>10⭐: Increases damage dealt on targets by 15% for 5s.</li></ul>
             </div><div class="skill-block">
               <div class="skill-head"><span class="skill-icon">🌀</span><span class="skill-label">Passive:</span> <span class="skill-name">Lone Flower</span></div>
               <div class="skill-meta">Passive Skill &middot; No cooldown</div>
@@ -404,24 +287,20 @@
               <ul class="skill-tiers"><li>Unlocks at Hero Level 30 and 8⭐</li></ul>
             </div>
           </div>
-          <div class="gear-section">
-            <div class="gear-title">Gear Priority</div>
-            <div class="gear-empty">Gear priorities not documented yet — check back as data is added.</div>
-          </div>
         </div>
       </div>
 
-      <div class="hero-card" data-name="cynthia" data-faction="ranger" data-class="carry">
+      <div class="hero-card rarity-ur" data-name="cynthia" data-faction="ranger" data-class="carry" data-rarity="ur">
         <button class="hero-card-head" type="button">
           <img src="hero-images/hero-cynthia.jpg" alt="Cynthia" class="hero-portrait" loading="lazy">
           <div class="hero-card-info">
             <div class="hero-name-row">
               <span class="hero-name">Cynthia</span>
-              <span class="rarity-badge" style="background:#e8c77a;color:#2a2416;">UR (Gold)</span>
             </div>
             <div class="hero-tags">
-              <span class="tag tag-faction">Ranger</span>
-              <span class="tag tag-class">Carry</span>
+              <span class="tag tag-rarity"><span class="rarity-dot" style="background:#e3a84c;"></span>UR (Gold)</span>
+              <span class="tag tag-faction"><img class="tag-icon" src="indicator-icons/faction-ranger.png" alt="">Ranger</span>
+              <span class="tag tag-class"><img class="tag-icon" src="indicator-icons/class-carry.png" alt="">Carry</span>
             </div>
             <div class="hero-stats">
               <span class="stat">⚔️ 15,971</span>
@@ -439,13 +318,13 @@
               <div class="skill-meta">Auto Attack &middot; No cooldown &middot; Energy DMG</div>
               <ul class="skill-tiers"><li>1⭐: Deals 40% Extra Damage.</li><li>5⭐: Extra damage increases to 100%.</li><li>10⭐: Extra damage increases to 200%.</li></ul>
             </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">💥</span><span class="skill-label">Ultimate:</span> <span class="skill-name">Moonfall Dance</span></div>
-              <div class="skill-meta">Ultimate Skill &middot; CD: 13.6s &middot; Energy DMG</div>
-              <ul class="skill-tiers"><li>2⭐: Deals 40% extra damage.</li><li>6⭐: Deals damage to all enemies.</li><li>10⭐: Extra damage increases to 100%.</li></ul>
-            </div><div class="skill-block">
               <div class="skill-head"><span class="skill-icon">⚡</span><span class="skill-label">Active:</span> <span class="skill-name">Lunar Hunt</span></div>
               <div class="skill-meta">Active Skill &middot; CD: 4.5s &middot; Energy DMG</div>
               <ul class="skill-tiers"><li>3⭐: Deals 40% Extra Damage.</li><li>7⭐: Extra damage increases to 100%.</li><li>10⭐: Extra damage increases to 200%.</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">💥</span><span class="skill-label">Ultimate:</span> <span class="skill-name">Moonfall Dance</span></div>
+              <div class="skill-meta">Ultimate Skill &middot; CD: 13.6s &middot; Energy DMG</div>
+              <ul class="skill-tiers"><li>2⭐: Deals 40% extra damage.</li><li>6⭐: Deals damage to all enemies.</li><li>10⭐: Extra damage increases to 100%.</li></ul>
             </div><div class="skill-block">
               <div class="skill-head"><span class="skill-icon">🌀</span><span class="skill-label">Passive:</span> <span class="skill-name">Moon's Blessing</span></div>
               <div class="skill-meta">Passive Skill &middot; No cooldown</div>
@@ -456,24 +335,116 @@
               <ul class="skill-tiers"><li>Unlocks at Hero Level 30 and 8⭐</li></ul>
             </div>
           </div>
-          <div class="gear-section">
-            <div class="gear-title">Gear Priority</div>
-            <div class="gear-empty">Gear priorities not documented yet — check back as data is added.</div>
+        </div>
+      </div>
+
+      <div class="hero-card rarity-ur" data-name="jester" data-faction="warlock" data-class="carry" data-rarity="ur">
+        <button class="hero-card-head" type="button">
+          <img src="hero-images/hero-jester.jpg" alt="Jester" class="hero-portrait" loading="lazy">
+          <div class="hero-card-info">
+            <div class="hero-name-row">
+              <span class="hero-name">Jester</span>
+            </div>
+            <div class="hero-tags">
+              <span class="tag tag-rarity"><span class="rarity-dot" style="background:#e3a84c;"></span>UR (Gold)</span>
+              <span class="tag tag-faction"><img class="tag-icon" src="indicator-icons/faction-warlock.png" alt="">Warlock</span>
+              <span class="tag tag-class"><img class="tag-icon" src="indicator-icons/class-carry.png" alt="">Carry</span>
+            </div>
+            <div class="hero-stats">
+              <span class="stat">⚔️ 15,971</span>
+              <span class="stat">❤️ 2,236,301</span>
+              <span class="stat">🛡️ 15,971</span>
+              <span class="stat">🎖️ 350</span>
+            </div>
+          </div>
+          <span class="expand-chevron">&#9662;</span>
+        </button>
+        <div class="hero-card-body">
+          <div class="skills-wrap">
+            <div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">🗡️</span><span class="skill-label">Auto Attack:</span> <span class="skill-name">Deal Cards</span></div>
+              <div class="skill-meta">Auto Attack &middot; No cooldown &middot; Physical DMG</div>
+              <ul class="skill-tiers"><li>1⭐: Deals 40% Extra Damage.</li><li>5⭐: Extra damage increases to 100%.</li><li>10⭐: Extra damage increases to 200%.</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">⚡</span><span class="skill-label">Active:</span> <span class="skill-name">Hearthunt Red Card</span></div>
+              <div class="skill-meta">Active Skill &middot; CD: 4.5s &middot; Physical DMG</div>
+              <ul class="skill-tiers"><li>3⭐: Deals 40% extra damage.</li><li>7⭐: Extra damage increases to 100%.</li><li>10⭐: Inflicts [Burn] on the target, dealing 400% Attack Damage per second for 3s.</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">💥</span><span class="skill-label">Ultimate:</span> <span class="skill-name">Candy Jar</span></div>
+              <div class="skill-meta">Ultimate Skill &middot; CD: 13.6s &middot; Physical DMG</div>
+              <ul class="skill-tiers"><li>2⭐: Deals 40% extra damage.</li><li>6⭐: Extra damage increases to 100%.</li><li>10⭐: Attack Target +1.</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">🌀</span><span class="skill-label">Passive:</span> <span class="skill-name">Frenzied Emotion</span></div>
+              <div class="skill-meta">Passive Skill &middot; No cooldown</div>
+              <ul class="skill-tiers"><li>4⭐: Effect increases by 1.6%.</li><li>9⭐: Effect increases by 2.4%.</li><li>10⭐: Effect increases by 4%.</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">🤝</span><span class="skill-label">Support:</span> <span class="skill-name">Tenacity</span></div>
+              <div class="skill-meta">No cooldown</div>
+              <ul class="skill-tiers"><li>Unlocks at Hero Level 30 and 8⭐</li></ul>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="hero-card" data-name="nicole" data-faction="warlock" data-class="support">
+      <div class="hero-card rarity-ur" data-name="marlena" data-faction="warrior" data-class="carry" data-rarity="ur">
+        <button class="hero-card-head" type="button">
+          <img src="hero-images/hero-marlena.jpg" alt="Marlena" class="hero-portrait" loading="lazy">
+          <div class="hero-card-info">
+            <div class="hero-name-row">
+              <span class="hero-name">Marlena</span>
+            </div>
+            <div class="hero-tags">
+              <span class="tag tag-rarity"><span class="rarity-dot" style="background:#e3a84c;"></span>UR (Gold)</span>
+              <span class="tag tag-faction"><img class="tag-icon" src="indicator-icons/faction-warrior.png" alt="">Warrior</span>
+              <span class="tag tag-class"><img class="tag-icon" src="indicator-icons/class-carry.png" alt="">Carry</span>
+            </div>
+            <div class="hero-stats">
+              <span class="stat">⚔️ 15,971</span>
+              <span class="stat">❤️ 2,236,301</span>
+              <span class="stat">🛡️ 15,971</span>
+              <span class="stat">🎖️ 350</span>
+            </div>
+          </div>
+          <span class="expand-chevron">&#9662;</span>
+        </button>
+        <div class="hero-card-body">
+          <div class="skills-wrap">
+            <div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">🗡️</span><span class="skill-label">Auto Attack:</span> <span class="skill-name">Skybreaker Slash</span></div>
+              <div class="skill-meta">No cooldown &middot; Energy DMG</div>
+              <ul class="skill-tiers"><li>1⭐: Deals 40% Extra dmg.</li><li>5⭐: Extra dmg increases to 100%.</li><li>10⭐: Extra dmg increases to 200%</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">⚡</span><span class="skill-label">Active:</span> <span class="skill-name">Crimson Bloom</span></div>
+              <div class="skill-meta">CD: 4.5s &middot; Energy DMG</div>
+              <ul class="skill-tiers"><li>3⭐: Deals 20% extra dm,  increases ATK by 12% for 3s</li><li>7⭐: Extra dmg increases to 70%.</li><li>10⭐: Extra dmg increases to 150%</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">💥</span><span class="skill-label">Ultimate:</span> <span class="skill-name">Peerless Blade</span></div>
+              <div class="skill-meta">CD: 13.6 &middot; Energy DMG</div>
+              <ul class="skill-tiers"><li>2⭐: Sword Wind +1; each deals 20% extra dmg</li><li>6⭐: Each deals 100% extra dmg</li><li>10⭐: Sword Wind +1; each deals 140% extra dmg</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">🌀</span><span class="skill-label">Passive:</span> <span class="skill-name">War God's Will</span></div>
+              <div class="skill-meta">No cooldown</div>
+              <ul class="skill-tiers"><li>4⭐: Effect increases by 1.6%</li><li>9⭐: Effect increases by 2.4%</li><li>10⭐: Effect increases by 4%</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">🤝</span><span class="skill-label">Support:</span> <span class="skill-name">Tenacity</span></div>
+              <div class="skill-meta">No cooldown</div>
+              <ul class="skill-tiers"><li>Unlocks at Hero Level 30 and 8⭐</li></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-card rarity-ur" data-name="nicole" data-faction="warlock" data-class="support" data-rarity="ur">
         <button class="hero-card-head" type="button">
           <div class="hero-portrait hero-portrait-placeholder">?</div>
           <div class="hero-card-info">
             <div class="hero-name-row">
               <span class="hero-name">Nicole</span>
-              <span class="rarity-badge" style="background:#e8c77a;color:#2a2416;">UR (Gold)</span>
             </div>
             <div class="hero-tags">
-              <span class="tag tag-faction">Warlock</span>
-              <span class="tag tag-class">Support</span>
+              <span class="tag tag-rarity"><span class="rarity-dot" style="background:#e3a84c;"></span>UR (Gold)</span>
+              <span class="tag tag-faction"><img class="tag-icon" src="indicator-icons/faction-warlock.png" alt="">Warlock</span>
+              <span class="tag tag-class"><img class="tag-icon" src="indicator-icons/class-support.png" alt="">Support</span>
             </div>
             <div class="hero-stats">
               <span class="stat">⚔️ 15,971</span>
@@ -491,18 +462,62 @@
               <div class="skill-meta">Auto Attack &middot; No cooldown &middot; Physical DMG</div>
               <ul class="skill-tiers"><li>1⭐: Deals 40% Extra Damage.</li><li>5⭐: Extra damage increases to 100%.</li><li>10⭐: Extra damage increases to 200%.</li></ul>
             </div><div class="skill-block">
-              <div class="skill-head"><span class="skill-icon">💥</span><span class="skill-label">Ultimate:</span> <span class="skill-name">Inferno Array</span></div>
-              <div class="skill-meta">Ultimate Skill &middot; CD: 13.6s &middot; Physical DMG</div>
-              <ul class="skill-tiers"><li>2⭐: Deals 100% extra damage.</li><li>6⭐: Extra damage increases to 200%.</li><li>10⭐: Damage from Burn status increases by 5%.</li></ul>
-            </div><div class="skill-block">
               <div class="skill-head"><span class="skill-icon">⚡</span><span class="skill-label">Active:</span> <span class="skill-name">Heartwarming Flame</span></div>
               <div class="skill-meta">Active Skill &middot; CD: 4.5s</div>
               <ul class="skill-tiers"><li>3⭐: Restores extra 70% HP.</li><li>7⭐: Extra HP recovery increases to 140%.</li><li>10⭐: Extra HP recovery increases to 210%.</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">💥</span><span class="skill-label">Ultimate:</span> <span class="skill-name">Inferno Array</span></div>
+              <div class="skill-meta">Ultimate Skill &middot; CD: 13.6s &middot; Physical DMG</div>
+              <ul class="skill-tiers"><li>2⭐: Deals 100% extra damage.</li><li>6⭐: Extra damage increases to 200%.</li><li>10⭐: Damage from Burn status increases by 5%.</li></ul>
             </div><div class="skill-block empty"><div class="skill-head"><span class="skill-icon">🌀</span><span class="skill-label">Passive Skill</span></div><div class="skill-empty-note">Not documented yet</div></div><div class="skill-block empty"><div class="skill-head"><span class="skill-icon">🤝</span><span class="skill-label">Support Skill</span></div><div class="skill-empty-note">Not documented yet</div></div>
           </div>
-          <div class="gear-section">
-            <div class="gear-title">Gear Priority</div>
-            <div class="gear-empty">Gear priorities not documented yet — check back as data is added.</div>
+        </div>
+      </div>
+
+      <div class="hero-card rarity-ur" data-name="red lady" data-faction="ranger" data-class="carry" data-rarity="ur">
+        <button class="hero-card-head" type="button">
+          <img src="hero-images/hero-red-lady.jpg" alt="Red Lady" class="hero-portrait" loading="lazy">
+          <div class="hero-card-info">
+            <div class="hero-name-row">
+              <span class="hero-name">Red Lady</span>
+            </div>
+            <div class="hero-tags">
+              <span class="tag tag-rarity"><span class="rarity-dot" style="background:#e3a84c;"></span>UR (Gold)</span>
+              <span class="tag tag-faction"><img class="tag-icon" src="indicator-icons/faction-ranger.png" alt="">Ranger</span>
+              <span class="tag tag-class"><img class="tag-icon" src="indicator-icons/class-carry.png" alt="">Carry</span>
+            </div>
+            <div class="hero-stats">
+              <span class="stat">⚔️ 15,971</span>
+              <span class="stat">❤️ 2,236,301</span>
+              <span class="stat">🛡️ 15,971</span>
+              <span class="stat">🎖️ 350</span>
+            </div>
+          </div>
+          <span class="expand-chevron">&#9662;</span>
+        </button>
+        <div class="hero-card-body">
+          <div class="skills-wrap">
+            <div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">🗡️</span><span class="skill-label">Auto Attack:</span> <span class="skill-name">Blood Blade</span></div>
+              <div class="skill-meta">Auto Attack &middot; No cooldown &middot; Energy DMG</div>
+              <ul class="skill-tiers"><li>1⭐: Deals 40% Extra Damage.</li><li>5⭐: Extra damage increases to 100%.</li><li>10⭐: Extra damage increases to 200%.</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">⚡</span><span class="skill-label">Active:</span> <span class="skill-name">Bloodthirsty Slaughter</span></div>
+              <div class="skill-meta">Active Skill &middot; CD: 4.5s &middot; Energy DMG</div>
+              <ul class="skill-tiers"><li>3⭐: Deals 40% Extra Damage.</li><li>7⭐: Extra damage increases to 100%.</li><li>10⭐: Extra damage increases to 200%.</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">💥</span><span class="skill-label">Ultimate:</span> <span class="skill-name">Crimson Rose</span></div>
+              <div class="skill-meta">Ultimate Skill &middot; CD: 13.6s &middot; Energy DMG</div>
+              <ul class="skill-tiers"><li>2⭐: Deals 40% extra damage</li><li>6⭐: Attack Target +1</li><li>10⭐: Extra damage increases to 140%</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">🌀</span><span class="skill-label">Passive:</span> <span class="skill-name">Lone Flower</span></div>
+              <div class="skill-meta">Passive Skill &middot; No cooldown</div>
+              <ul class="skill-tiers"><li>4⭐: Effect increases by 1.6%.</li><li>9⭐: Effect increases by 2.4%.</li><li>10⭐: Effect increases by 4.0%.</li></ul>
+            </div><div class="skill-block">
+              <div class="skill-head"><span class="skill-icon">🤝</span><span class="skill-label">Support:</span> <span class="skill-name">Tenacity</span></div>
+              <div class="skill-meta">No cooldown</div>
+              <ul class="skill-tiers"><li>Unlocks at Hero Level 30 and 8⭐</li></ul>
+            </div>
           </div>
         </div>
       </div>
@@ -521,15 +536,17 @@ const searchInput = document.getElementById('searchInput');
 const filterBtns = document.querySelectorAll('.filter-btn');
 const cards = Array.from(document.querySelectorAll('.hero-card'));
 const noResults = document.getElementById('noResults');
-let activeClass = 'all';
+const activeFilters = { class: 'all', faction: 'all', rarity: 'all' };
 
 function applyFilters() {
   const q = searchInput.value.trim().toLowerCase();
   let visibleCount = 0;
   cards.forEach(card => {
     const matchesSearch = !q || card.dataset.name.includes(q) || card.dataset.faction.includes(q) || card.dataset.class.includes(q);
-    const matchesClass = activeClass === 'all' || card.dataset.class === activeClass;
-    const show = matchesSearch && matchesClass;
+    const matchesClass = activeFilters.class === 'all' || card.dataset.class === activeFilters.class;
+    const matchesFaction = activeFilters.faction === 'all' || card.dataset.faction === activeFilters.faction;
+    const matchesRarity = activeFilters.rarity === 'all' || card.dataset.rarity === activeFilters.rarity;
+    const show = matchesSearch && matchesClass && matchesFaction && matchesRarity;
     card.classList.toggle('hidden', !show);
     if (show) visibleCount++;
   });
@@ -539,9 +556,10 @@ function applyFilters() {
 searchInput.addEventListener('input', applyFilters);
 filterBtns.forEach(btn => {
   btn.addEventListener('click', () => {
-    filterBtns.forEach(b => b.classList.remove('active'));
+    const group = btn.dataset.group;
+    document.querySelectorAll(`.filter-btn[data-group="${group}"]`).forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    activeClass = btn.dataset.filter;
+    activeFilters[group] = btn.dataset.filter;
     applyFilters();
   });
 });

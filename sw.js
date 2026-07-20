@@ -1,4 +1,4 @@
-const CACHE_NAME = 'royal-city-map-v18';
+const CACHE_NAME = 'royal-city-map-v25';
 const ASSETS_TO_CACHE = [
   './royal-city-alliance-map.html',
   './territory-map.html',
@@ -10,6 +10,12 @@ const ASSETS_TO_CACHE = [
   './hero-images/hero-red-lady.jpg',
   './hero-images/hero-billy.jpg',
   './hero-images/hero-cynthia.jpg',
+  './indicator-icons/faction-warrior.png',
+  './indicator-icons/faction-ranger.png',
+  './indicator-icons/faction-warlock.png',
+  './indicator-icons/class-carry.png',
+  './indicator-icons/class-tank.png',
+  './indicator-icons/class-support.png',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',

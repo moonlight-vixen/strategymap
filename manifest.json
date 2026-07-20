@@ -1,7 +1,7 @@
 {
-  "name": "Royal City — Alliance Strategy Map",
+  "name": "Royal City — Alliance Hub",
   "short_name": "Royal City",
-  "description": "Interactive alliance territory map for Royal City — track owned, targeted, allied, and enemy territories.",
+  "description": "Alliance strategy hub for Royal City — territory map, hero guide, and sanctuary upgrade guide.",
   "start_url": "./royal-city-alliance-map.html",
   "scope": "./",
   "display": "standalone",
