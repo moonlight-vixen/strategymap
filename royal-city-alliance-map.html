@@ -982,7 +982,7 @@ document.querySelectorAll('.status-btn').forEach(btn => {
 });
 
 allianceInput.addEventListener('input', () => {
-  allianceInput.value = allianceInput.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+  allianceInput.value = allianceInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
 });
 
 document.getElementById('allianceConfirm').addEventListener('click', () => {
