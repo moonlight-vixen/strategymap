@@ -1,6 +1,7 @@
-const CACHE_NAME = 'royal-city-map-v12';
+const CACHE_NAME = 'royal-city-map-v18';
 const ASSETS_TO_CACHE = [
   './royal-city-alliance-map.html',
+  './territory-map.html',
   './sanctuary-upgrades.html',
   './hero-guide.html',
   './hero-images/hero-marlena.jpg',

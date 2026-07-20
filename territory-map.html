@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Royal City — Alliance Strategy Map</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#132420">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Royal City">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+
+<style>
+  :root{
+    --lvl1:#0e3a32; --lvl2:#b88128; --lvl3:#b7a071;
+    --lvl4:#523675; --lvl5:#004aad; --lvl6:#9d310d;
+    --royal:#403d39;
+    --paper:#0d1210;
+    --ink:#f4efe4;
+    --owned:#2ecc71;
+    --target:#0e8f6b;
+    --allyOwned:#3498db;
+    --allyTarget:#1f618d;
+    --enemy:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html, body{ height:100%; }
+  html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  body{
+    margin:0;
+    background:var(--paper);
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+    color:var(--ink);
+    padding:0;
+    overflow-x:hidden;
+    overflow-y:auto;
+  }
+  .wrap{
+    width:100vw;
+    height:100vh;
+    margin:0;
+  }
+  .map-container{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    background:#132420;
+    border-radius:0;
+    overflow:hidden;
+    border:none;
+  }
+  .map-container > svg{
+    display:block; width:100%; height:100%;
+    transform-origin:0 0;
+    touch-action:pan-y;
+  }
+  .hamburger-btn{
+    position:fixed;
+    top:calc(12px + env(safe-area-inset-top, 0px));
+    left:calc(12px + env(safe-area-inset-left, 0px));
+    z-index:1100;
+    width:44px; height:44px; border-radius:8px;
+    background:rgba(15,18,16,.88); border:1px solid #6b5f45; color:#e8c77a;
+    font-size:19px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 3px 10px rgba(0,0,0,.4);
+    transition:opacity .2s ease, background .15s ease;
+  }
+  .hamburger-btn:hover{ background:rgba(30,42,36,.95); }
+  .hamburger-btn.hidden{ opacity:0; pointer-events:none; }
+  .legend-drawer{
+    position:fixed; top:0; left:0; height:100vh; width:min(280px, 86vw);
+    background:#101613; border-right:1px solid #2a3f37;
+    z-index:1050; overflow-y:auto;
+    padding:calc(12px + env(safe-area-inset-top, 0px)) 14px 20px calc(14px + env(safe-area-inset-left, 0px));
+    transform:translateX(0); transition:transform .25s ease;
+    box-shadow:10px 0 26px rgba(0,0,0,.45);
+  }
+  .legend-drawer.closed{ transform:translateX(-100%); }
+  .drawer-header{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:6px;
+    min-height:32px;
+  }
+  .drawer-header h3{
+    font-size:18px; font-weight:400; color:#e8c77a; letter-spacing:1px; margin:0;
+  }
+  .drawer-close-btn{
+    background:none; border:none; color:#9c9488; font-size:22px; line-height:1;
+    cursor:pointer; padding:2px 6px;
+  }
+  .drawer-close-btn:hover{ color:#f4efe4; }
+  .reset-view-btn{
+    position:fixed;
+    bottom:calc(14px + env(safe-area-inset-bottom, 0px));
+    right:calc(14px + env(safe-area-inset-right, 0px));
+    z-index:1090;
+    background:rgba(15,18,16,.85); border:1px solid #6b5f45; color:#f4efe4;
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+    font-size:12px; padding:7px 12px; border-radius:6px; cursor:pointer;
+    display:none; align-items:center; gap:4px;
+  }
+  .reset-view-btn.visible{ display:flex; }
+  .reset-view-btn:hover{ background:rgba(30,42,36,.95); }
+  .province{
+    stroke:#0a0f0d;
+    stroke-width:1.4;
+    cursor:pointer;
+    transition:filter .15s ease;
+  }
+  .province:hover{ filter:brightness(1.15); }
+  .province.selected{ stroke:#fff; stroke-width:2.6; }
+  .lvl-1{ fill:var(--lvl1); }
+  .lvl-2{ fill:var(--lvl2); }
+  .lvl-3{ fill:var(--lvl3); }
+  .lvl-4{ fill:var(--lvl4); }
+  .lvl-5{ fill:var(--lvl5); }
+  .lvl-6{ fill:var(--lvl6); }
+  .royal-box{ fill:var(--royal); stroke:#d8ad5d; stroke-width:2; }
+  .royal-label{
+    fill:#ffffff; font-size:15px; font-weight:700; letter-spacing:1.5px;
+    text-anchor:middle; pointer-events:none; text-shadow:0 1px 3px rgba(0,0,0,.8);
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+  }
+  .status-overlay{
+    fill:transparent;
+    stroke:transparent;
+    stroke-width:3;
+    pointer-events:none;
+    transition:fill .15s ease, stroke .15s ease;
+  }
+  .status-overlay.st-owned{ fill:rgba(46,204,113,.42); stroke:var(--owned); }
+  .status-overlay.st-target{ fill:url(#hatchTarget); stroke:var(--target); }
+  .status-overlay.st-allyOwned{ fill:rgba(52,152,219,.42); stroke:var(--allyOwned); }
+  .status-overlay.st-allyTarget{ fill:url(#hatchAllyTarget); stroke:var(--allyTarget); }
+  .status-overlay.st-enemy-0{ fill:url(#hatchEnemy0); stroke:#c0392b; }
+  .status-overlay.st-enemy-1{ fill:url(#hatchEnemy1); stroke:#e67e22; }
+  .status-overlay.st-enemy-2{ fill:url(#hatchEnemy2); stroke:#d6336c; }
+  .status-overlay.st-enemy-3{ fill:url(#hatchEnemy3); stroke:#e74c3c; }
+  .status-overlay.st-enemy-4{ fill:url(#hatchEnemy4); stroke:#d35400; }
+  .status-overlay.st-enemy-5{ fill:url(#hatchEnemy5); stroke:#ad1457; }
+  .status-overlay.st-enemy-6{ fill:url(#hatchEnemy6); stroke:#a93226; }
+  .status-overlay.st-enemy-7{ fill:url(#hatchEnemy7); stroke:#f39c12; }
+  .status-overlay.st-enemy-8{ fill:url(#hatchEnemy8); stroke:#c2185b; }
+  .status-overlay.st-enemy-9{ fill:url(#hatchEnemy9); stroke:#c0392b; }
+  .status-overlay.st-enemy-10{ fill:url(#hatchEnemy10); stroke:#e67e22; }
+  .status-overlay.st-enemy-11{ fill:url(#hatchEnemy11); stroke:#d6336c; }
+  .flag-marker{ pointer-events:none; }
+  .flag-banner{ stroke-width:0.8; }
+  .flag-banner.fc-owned{ fill:#2ecc71; stroke:#0d3b22; }
+  .flag-banner.fc-ally{ fill:#3498db; stroke:#0d2b3b; }
+  .flag-banner.fc-0{ fill:#c0392b; stroke:#2a0a08; }
+  .flag-banner.fc-1{ fill:#e67e22; stroke:#2a0a08; }
+  .flag-banner.fc-2{ fill:#d6336c; stroke:#2a0a08; }
+  .flag-banner.fc-3{ fill:#e74c3c; stroke:#2a0a08; }
+  .flag-banner.fc-4{ fill:#d35400; stroke:#2a0a08; }
+  .flag-banner.fc-5{ fill:#ad1457; stroke:#2a0a08; }
+  .flag-banner.fc-6{ fill:#a93226; stroke:#2a0a08; }
+  .flag-banner.fc-7{ fill:#f39c12; stroke:#2a0a08; }
+  .flag-banner.fc-8{ fill:#c2185b; stroke:#2a0a08; }
+  .flag-banner.fc-9{ fill:#c0392b; stroke:#2a0a08; }
+  .flag-banner.fc-10{ fill:#e67e22; stroke:#2a0a08; }
+  .flag-banner.fc-11{ fill:#d6336c; stroke:#2a0a08; }
+  .flag-text{
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+    font-size:8px; font-weight:700; fill:#fff; text-anchor:middle; pointer-events:none;
+  }
+  .city-label{
+    pointer-events:none;
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+    paint-order:stroke;
+    stroke:rgba(0,0,0,.7);
+    stroke-width:2.5px;
+    stroke-linejoin:round;
+    fill:#ffffff;
+  }
+  .city-label .label-name{ font-size:9px; font-weight:700; }
+  .city-label .label-level{ font-size:7.5px; font-weight:600; fill:#f4efe4; opacity:.9; }
+  .tooltip{
+    position:fixed; pointer-events:none;
+    background:rgba(15,18,16,.96); border:1px solid #6b5f45; border-radius:6px;
+    padding:8px 12px; font-size:13px; line-height:1.5; color:#f4efe4;
+    display:none; z-index:1000; white-space:nowrap; box-shadow:0 4px 14px rgba(0,0,0,.5);
+  }
+  .tooltip .tt-name{ font-weight:700; color:#e8c77a; }
+  .tooltip .tt-lvl{ color:#9c9488; font-size:11px; }
+  .tooltip .tt-status{ margin-top:3px; font-size:11px; font-weight:700; }
+
+  .panel{
+    background:#171f1b; border:1px solid #2a3f37; border-radius:8px;
+    padding:14px 16px; margin-bottom:16px;
+  }
+  .panel h3{
+    margin:0 0 12px; font-size:15px; color:#e8c77a; letter-spacing:1px;
+    border-bottom:1px solid #3a352c; padding-bottom:8px; font-weight:400;
+  }
+  .legend-panel{
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+  }
+  .legend-panel h3{
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+  }
+  .legend-item{
+    display:flex; align-items:center; gap:7px; padding:2px 6px;
+    border-radius:4px; margin-bottom:0; font-weight:600; font-size:12px;
+  }
+  .legend-item .count{
+    color:#9c9488; font-weight:400; font-size:11px;
+  }
+  .legend-divider{
+    height:1px; background:#3a352c; margin:7px 2px;
+  }
+  .action-btn{
+    display:block; width:100%; text-align:center; padding:8px 10px; margin-bottom:6px;
+    border-radius:5px; border:1px solid #6b6355; background:transparent; color:#cbc3b5;
+    font-family:inherit; font-size:12px; letter-spacing:.3px; cursor:pointer; transition:all .15s ease;
+    box-sizing:border-box;
+  }
+  .action-btn:hover{ background:#6b6355; color:#fff; }
+  .action-btn.nav-link{ border-color:#7a6635; color:#e8c77a; text-decoration:none; }
+  .action-btn.nav-link:hover{ background:#4a3d1f; color:#fff; }
+  .drawer-section-label{
+    font-size:10.5px; color:#6b6355; text-transform:uppercase; letter-spacing:.8px;
+    margin:0 0 6px 2px; font-weight:700;
+  }
+  .export-import-row{
+    display:flex; align-items:stretch; gap:6px; margin-bottom:6px;
+  }
+  .action-btn.half{ flex:1; margin-bottom:0; }
+  .info-btn{
+    flex-shrink:0; width:32px; border-radius:50%; border:1px solid #6b6355;
+    background:transparent; color:#9c9488; cursor:pointer; font-size:14px;
+    display:flex; align-items:center; justify-content:center; transition:all .15s ease;
+  }
+  .info-btn:hover{ background:#6b6355; color:#fff; }
+  .info-btn.active{ background:#e8c77a; border-color:#e8c77a; color:#2a2416; }
+  .info-box{
+    background:#171f1b; border:1px solid #2a3f37; border-radius:6px;
+    padding:10px 12px; font-size:11.5px; color:#cbc3b5; line-height:1.6;
+    margin-bottom:10px;
+  }
+  .info-box b{ color:#e8c77a; }
+  .import-msg{ font-size:11px; color:#9c9488; margin-top:4px; min-height:14px; }
+  .swatch{ width:14px; height:14px; border-radius:3px; flex-shrink:0; border:1px solid rgba(0,0,0,.3); }
+  .status-popup{
+    position:fixed;
+    display:none;
+    background:#171f1b; border:1px solid #6b5f45; border-radius:8px;
+    padding:10px 12px; width:210px;
+    box-shadow:0 8px 24px rgba(0,0,0,.55);
+    z-index:1001;
+  }
+  .status-popup.active{ display:block; }
+  .popup-head{
+    display:flex; align-items:flex-start; justify-content:space-between;
+    margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid #3a352c;
+  }
+  #popName{ font-size:14.5px; color:#e8c77a; font-weight:700; }
+  #popMeta{ font-size:11px; color:#9c9488; margin-top:2px; }
+  #popClose{
+    background:none; border:none; color:#9c9488; font-size:18px; line-height:1;
+    cursor:pointer; padding:0 0 0 8px;
+  }
+  #popClose:hover{ color:#f4efe4; }
+  .status-btn{
+    display:block; width:100%; text-align:left; padding:8px 10px; margin-bottom:6px;
+    border-radius:5px; border:1px solid #3a352c; background:#1e2a24; color:#f4efe4;
+    font-family:inherit; font-size:12.5px; cursor:pointer; transition:all .15s ease;
+  }
+  .status-btn:hover{ border-color:#6b6355; }
+  .status-btn.active-owned{ background:var(--owned); color:#0d1210; border-color:var(--owned); }
+  .status-btn.active-target{ background:var(--target); color:#0d1210; border-color:var(--target); }
+  .status-btn.active-allyOwned{ background:var(--allyOwned); color:#0d1210; border-color:var(--allyOwned); }
+  .status-btn.active-allyTarget{ background:var(--allyTarget); color:#fff; border-color:var(--allyTarget); }
+  .status-btn.active-enemy{ background:var(--enemy); color:#fff; border-color:var(--enemy); }
+  #allianceInputWrap{ display:none; margin:8px 0; }
+  #allianceInputWrap .field-label{ font-size:11px; color:#9c9488; margin-bottom:4px; }
+  #allianceInputWrap input{
+    width:100%; padding:7px 9px; border-radius:5px; border:1px solid #3a352c;
+    background:#0d1210; color:#f4efe4; font-family:inherit; font-size:14px;
+    text-align:center; letter-spacing:3px; text-transform:uppercase; font-weight:700;
+  }
+  #allianceInputWrap button{
+    margin-top:6px; width:100%; padding:7px; border-radius:5px; border:none;
+    background:#e8c77a; color:#2a2416; font-weight:700; cursor:pointer; font-size:12px;
+  }
+  .clear-btn{ border-color:#6b6355; color:#cbc3b5; }
+  .alliance-summary-wrap{
+    max-width:1100px;
+    margin:0 auto;
+    padding:24px 20px 40px;
+  }
+  .summary-title{
+    font-size:20px; font-weight:400; color:#e8c77a; letter-spacing:1px;
+    margin:0 0 14px; padding-bottom:10px; border-bottom:1px solid #2a3f37;
+  }
+  .alliance-summary-scroll{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .alliance-summary-table{
+    width:100%; min-width:460px; border-collapse:collapse; background:#171f1b;
+    border:1px solid #2a3f37; border-radius:8px; overflow:hidden; font-size:13px;
+  }
+  .alliance-summary-table th, .alliance-summary-table td{
+    padding:7px 9px; text-align:center; border-bottom:1px solid #2a3f37;
+  }
+  .alliance-summary-table th{
+    background:#1e2a24; color:#e8c77a; font-weight:700; font-size:11px; letter-spacing:.3px;
+  }
+  .alliance-summary-table td:first-child, .alliance-summary-table th:first-child{
+    text-align:left; font-weight:700;
+  }
+  .alliance-summary-table tbody tr:last-child td{ border-bottom:none; }
+  .alliance-summary-table tbody tr:hover{ background:#1c2620; }
+  .alliance-legend-swatch{ display:inline-block; vertical-align:middle; border-radius:2px; border:1px solid rgba(0,0,0,.4); }
+  .as-total{ color:#e8c77a; font-weight:700; }
+  .as-zero{ color:#5a554c; }
+  .alliance-summary-table svg{ vertical-align:middle; border-radius:2px; }
+  .as-note{ font-size:10px; color:#3498db; font-weight:600; margin-top:2px; }
+</style>
+</head>
+<body>
+
+<button id="hamburgerBtn" class="hamburger-btn" aria-label="Toggle legend">☰</button>
+
+<div class="wrap">
+  <div class="map-container">
+    <svg id="mapSvg" viewBox="0 0 1270 1040" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="hatchEnemy0" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">
+          <rect width="7" height="7" fill="rgba(192,57,43,.16)"/>
+          <line x1="0" y1="0" x2="0" y2="7" stroke="#c0392b" stroke-width="2.2" opacity="0.55"/>
+        </pattern>
+        <pattern id="hatchEnemy1" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(135)">
+          <rect width="7" height="7" fill="rgba(230,126,34,.16)"/>
+          <line x1="0" y1="0" x2="0" y2="7" stroke="#e67e22" stroke-width="2.2" opacity="0.55"/>
+        </pattern>
+        <pattern id="hatchEnemy2" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
+          <rect width="10" height="10" fill="rgba(214,51,108,.16)"/>
+          <line x1="0" y1="0" x2="0" y2="10" stroke="#d6336c" stroke-width="3" opacity="0.55"/>
+        </pattern>
+        <pattern id="hatchEnemy3" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+          <rect width="8" height="8" fill="rgba(231,76,60,.14)"/>
+          <line x1="0" y1="0" x2="0" y2="8" stroke="#e74c3c" stroke-width="1.6" opacity="0.55"/><line x1="0" y1="0" x2="8" y2="0" stroke="#e74c3c" stroke-width="1.6" opacity="0.55"/>
+        </pattern>
+        <pattern id="hatchEnemy4" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(0)">
+          <rect width="6" height="6" fill="rgba(211,84,0,.16)"/>
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#d35400" stroke-width="2.2" opacity="0.55"/>
+        </pattern>
+        <pattern id="hatchEnemy5" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(90)">
+          <rect width="6" height="6" fill="rgba(173,20,87,.16)"/>
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#ad1457" stroke-width="2.2" opacity="0.55"/>
+        </pattern>
+        <pattern id="hatchEnemy6" patternUnits="userSpaceOnUse" width="9" height="9" patternTransform="rotate(0)">
+          <rect width="9" height="9" fill="rgba(169,50,38,.14)"/>
+          <circle cx="2.25" cy="2.25" r="1.2600000000000002" fill="#a93226" opacity="0.6"/><circle cx="6.75" cy="6.75" r="1.2600000000000002" fill="#a93226" opacity="0.6"/>
+        </pattern>
+        <pattern id="hatchEnemy7" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+          <rect width="8" height="8" fill="rgba(243,156,18,.16)"/>
+          <line x1="0" y1="0" x2="0" y2="4.0" stroke="#f39c12" stroke-width="2.2" opacity="0.55"/>
+        </pattern>
+        <pattern id="hatchEnemy8" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(135)">
+          <rect width="10" height="10" fill="rgba(194,24,91,.14)"/>
+          <line x1="0" y1="0" x2="0" y2="10" stroke="#c2185b" stroke-width="1.6" opacity="0.55"/><line x1="0" y1="0" x2="10" y2="0" stroke="#c2185b" stroke-width="1.6" opacity="0.55"/>
+        </pattern>
+        <pattern id="hatchEnemy9" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">
+          <rect width="7" height="7" fill="rgba(192,57,43,.14)"/>
+          <line x1="0" y1="0" x2="0" y2="7" stroke="#c0392b" stroke-width="2.2" opacity="0.55"/>
+        </pattern>
+        <pattern id="hatchEnemy10" patternUnits="userSpaceOnUse" width="9" height="9" patternTransform="rotate(0)">
+          <rect width="9" height="9" fill="rgba(230,126,34,.14)"/>
+          <circle cx="2.6999999999999997" cy="2.6999999999999997" r="0.9" fill="#e67e22" opacity="0.65"/><circle cx="6.3" cy="6.3" r="0.9" fill="#e67e22" opacity="0.65"/><circle cx="2.6999999999999997" cy="6.3" r="0.9" fill="#e67e22" opacity="0.5"/>
+        </pattern>
+        <pattern id="hatchEnemy11" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(90)">
+          <rect width="6" height="6" fill="rgba(214,51,108,.16)"/>
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#d6336c" stroke-width="3" opacity="0.55"/>
+        </pattern>
+        <pattern id="hatchTarget" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">
+          <rect width="7" height="7" fill="rgba(14,143,107,.14)"/>
+          <line x1="0" y1="0" x2="0" y2="7" stroke="#0e8f6b" stroke-width="2.2" opacity="0.55"/>
+        </pattern>
+        <pattern id="hatchAllyTarget" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">
+          <rect width="7" height="7" fill="rgba(31,97,141,.16)"/>
+          <line x1="0" y1="0" x2="0" y2="7" stroke="#1f618d" stroke-width="2.2" opacity="0.55"/>
+        </pattern>
+      </defs>
+      <image id="buffsLayer" x="0" y="0" width="1270" height="1040" style="display:none" preserveAspectRatio="none"></image>
+      <path class="province lvl-5" data-idx="0" data-name="Temple of Order" data-level="5" data-out="Herb Output 15" d="M 572,374 L 494,374 L 493,397 L 386,397 L 386,475 L 449,475 L 449,450 L 572,450 Z"></path>
+      <path class="province lvl-1" data-idx="1" data-name="Ravens Roost" data-level="1" data-out="Grain Output 5" d="M 707,1 L 707,78 L 837,78 L 838,135 L 886,135 L 886,1 Z"></path>
+      <path class="province lvl-2" data-idx="2" data-name="Lark Lane" data-level="2" data-out="Herb Output 5" d="M 124,593 L 248,593 L 248,539 L 302,538 L 302,496 L 289,495 L 289,481 L 152,481 L 152,566 L 124,567 Z"></path>
+      <path class="province lvl-3" data-idx="3" data-name="Ironwall City" data-level="3" data-out="Grain Output 10" d="M 886,305 L 886,341 L 939,342 L 939,419 L 1024,419 L 1024,370 L 1044,370 L 1044,341 L 1027,340 L 1027,305 Z"></path>
+      <path class="province lvl-3" data-idx="4" data-name="Silverleaf Grove" data-level="3" data-out="Herb Output 10" d="M 1018,528 L 1018,601 L 1194,601 L 1194,535 L 1134,535 L 1134,502 L 1080,502 L 1079,528 Z"></path>
+      <path class="province lvl-1" data-idx="5" data-name="Stag Path" data-level="1" data-out="Timber Output 5" d="M 1168,129 L 1168,193 L 1131,193 L 1131,240 L 1181,240 L 1182,299 L 1236,299 L 1236,270 L 1262,270 L 1262,129 Z"></path>
+      <path class="province lvl-1" data-idx="6" data-name="Snail Shell" data-level="1" data-out="Grain Output 5" d="M 660,968 L 660,984 L 700,984 L 700,1035 L 831,1035 L 831,968 Z"></path>
+      <path class="province lvl-2" data-idx="7" data-name="Stonechant Market" data-level="2" data-out="Grain Gather Spd 5" d="M 670,95 L 670,186 L 770,186 L 772,199 L 802,199 L 802,185 L 866,185 L 866,141 L 831,141 L 831,84 L 707,84 L 707,94 Z"></path>
+      <path class="province lvl-1" data-idx="8" data-name="Opal Mine" data-level="1" data-out="Grain Output 5" d="M 1,127 L 1,261 L 56,261 L 57,206 L 198,206 L 198,139 L 116,139 L 116,127 Z"></path>
+      <path class="province lvl-4" data-idx="9" data-name="Phantom City" data-level="4" data-out="Herb Output 15" d="M 308,496 L 308,538 L 355,538 L 356,557 L 427,557 L 428,547 L 487,547 L 487,506 L 450,506 L 449,481 L 328,481 L 327,496 Z"></path>
+      <path class="province lvl-1" data-idx="10" data-name="Scavenger" data-level="1" data-out="Grain Output 5" d="M 660,924 L 660,961 L 851,961 L 851,910 L 822,910 L 822,892 L 737,892 L 737,905 L 705,905 L 705,924 Z"></path>
+      <path class="province lvl-2" data-idx="11" data-name="Violet" data-level="2" data-out="Herb Output 5" d="M 579,139 L 579,211 L 611,211 L 611,261 L 688,261 L 689,232 L 734,232 L 734,192 L 663,192 L 663,139 Z"></path>
+      <path class="province lvl-2" data-idx="12" data-name="Copper Street" data-level="2" data-out="Grain Gather Spd 5" d="M 403,1 L 403,102 L 491,102 L 491,129 L 551,129 L 551,19 L 587,19 L 587,1 Z"></path>
+      <path class="province lvl-1" data-idx="13" data-name="Fox Den" data-level="1" data-out="Grain Output 5" d="M 1,481 L 1,593 L 118,593 L 118,561 L 145,561 L 145,481 Z"></path>
+      <path class="province lvl-2" data-idx="14" data-name="Amber Road" data-level="2" data-out="Herb Output 10" d="M 491,135 L 491,232 L 452,233 L 452,297 L 605,297 L 605,217 L 572,217 L 572,135 Z"></path>
+      <path class="province lvl-1" data-idx="15" data-name="Wildberry Thicket" data-level="1" data-out="Timber Output 5" d="M 837,968 L 837,1035 L 995,1035 L 995,988 L 970,988 L 969,968 Z"></path>
+      <path class="province lvl-6" data-idx="16" data-name="Sky Fortress" data-level="6" data-out="Building Spd 20" d="M 455,456 L 455,500 L 494,500 L 494,600 L 517,601 L 517,648 L 568,648 L 568,611 L 672,611 L 672,575 L 561,575 L 561,465 L 572,465 L 572,456 Z"></path>
+      <path class="province lvl-1" data-idx="17" data-name="Graywolf Vale" data-level="1" data-out="Grain Output 5" d="M 101,599 L 101,684 L 186,684 L 187,655 L 248,655 L 248,599 Z"></path>
+      <path class="province lvl-1" data-idx="18" data-name="Mossy Crag" data-level="1" data-out="Timber Output 5" d="M 1262,563 L 1200,563 L 1199,607 L 1155,607 L 1155,716 L 1231,716 L 1232,686 L 1262,686 Z"></path>
+      <path class="province lvl-6" data-idx="19" data-name="Lionheart Fortress" data-level="6" data-out="Training Spd 20" d="M 578,410 L 578,465 L 715,465 L 715,509 L 767,509 L 768,529 L 819,529 L 819,407 L 799,407 L 799,389 L 649,389 L 648,410 Z"></path>
+      <path class="province lvl-1" data-idx="20" data-name="Maple Town" data-level="1" data-out="Timber Output 5" d="M 95,599 L 1,599 L 1,749 L 39,749 L 40,684 L 95,684 Z"></path>
+      <path class="province lvl-3" data-idx="21" data-name="Stillwater River" data-level="3" data-out="Grain Output 10" d="M 574,782 L 574,848 L 677,848 L 677,877 L 705,877 L 705,898 L 731,898 L 732,886 L 748,886 L 748,829 L 729,828 L 729,798 L 672,798 L 671,782 Z"></path>
+      <path class="province lvl-5" data-idx="22" data-name="Temple of Chaos" data-level="5" data-out="Timber Output 20" d="M 427,668 L 427,712 L 455,712 L 455,738 L 518,738 L 519,728 L 568,728 L 568,655 L 511,654 L 511,606 L 480,606 L 480,618 L 464,618 L 464,668 Z"></path>
+      <path class="province lvl-1" data-idx="23" data-name="Frostleaf Market" data-level="1" data-out="Timber Output 5" d="M 220,983 L 220,1035 L 395,1035 L 395,1004 L 336,1004 L 335,983 Z"></path>
+      <path class="province lvl-1" data-idx="24" data-name="Stonebrook Town" data-level="1" data-out="Timber Output 5" d="M 1262,1 L 1202,1 L 1202,35 L 1168,35 L 1168,65 L 1138,65 L 1138,123 L 1262,123 Z"></path>
+      <path class="province lvl-2" data-idx="25" data-name="Nymph Falls" data-level="2" data-out="Grain Output 5" d="M 1018,607 L 1018,701 L 1040,701 L 1040,708 L 1149,708 L 1149,607 Z"></path>
+      <path class="province lvl-1" data-idx="26" data-name="Haystack" data-level="1" data-out="Grain Output 5" d="M 1,926 L 1,1035 L 214,1035 L 214,983 L 114,982 L 114,926 Z"></path>
+      <path class="province lvl-1" data-idx="27" data-name="Gravel Slope" data-level="1" data-out="Grain Output 5" d="M 122,1 L 122,132 L 198,132 L 199,109 L 234,109 L 234,1 Z"></path>
+      <path class="province lvl-5" data-idx="28" data-name="Temple of Nature" data-level="5" data-out="Grain Gather Spd 15" d="M 753,339 L 753,383 L 804,383 L 805,401 L 932,401 L 932,347 L 880,347 L 880,279 L 807,279 L 806,338 Z"></path>
+      <path class="province lvl-1" data-idx="29" data-name="Dripping Cavern" data-level="1" data-out="Timber Output 5" d="M 552,961 L 654,962 L 654,918 L 699,918 L 699,884 L 671,883 L 671,854 L 565,854 L 564,909 L 586,910 L 586,950 L 552,951 Z"></path>
+      <path class="province lvl-1" data-idx="30" data-name="Millstone Creek" data-level="1" data-out="Timber Output 5" d="M 1,267 L 1,475 L 80,475 L 80,372 L 119,371 L 119,267 Z"></path>
+      <path class="province lvl-3" data-idx="31" data-name="Deepmere Town" data-level="3" data-out="Herb Output 10" d="M 328,329 L 328,391 L 487,391 L 487,341 L 446,341 L 446,305 L 387,305 L 386,329 Z"></path>
+      <path class="province lvl-2" data-idx="32" data-name="Sailport" data-level="2" data-out="Herb Output 5" d="M 1071,46 L 1028,46 L 1028,79 L 932,79 L 932,141 L 917,141 L 917,184 L 1025,184 L 1026,131 L 1071,130 Z"></path>
+      <path class="province lvl-1" data-idx="33" data-name="Lamp Pavillion" data-level="1" data-out="Grain Output 5" d="M 1002,988 L 1002,1035 L 1179,1035 L 1179,1026 L 1153,1025 L 1153,965 L 1043,965 L 1042,988 Z"></path>
+      <path class="province lvl-4" data-idx="34" data-name="Sandwind Keep" data-level="4" data-out="Grain Gather Spd 15" d="M 487,553 L 434,553 L 433,563 L 355,563 L 356,586 L 337,587 L 337,624 L 395,624 L 396,662 L 458,662 L 458,612 L 474,611 L 475,600 L 487,600 Z"></path>
+      <path class="province lvl-3" data-idx="35" data-name="Frostwolf Camp" data-level="3" data-out="Grain Output 10" d="M 832,729 L 832,770 L 1034,769 L 1034,707 L 901,707 L 900,729 Z"></path>
+      <path class="province lvl-2" data-idx="36" data-name="Stagcall Vale" data-level="2" data-out="Grain Gather Spd 5" d="M 941,933 L 941,961 L 975,961 L 976,982 L 1036,982 L 1038,959 L 1153,959 L 1153,894 L 1125,894 L 1124,883 L 1040,883 L 1039,906 L 1006,906 L 1005,933 Z"></path>
+      <path class="province lvl-2" data-idx="37" data-name="Anvil Town" data-level="2" data-out="Herb Output 5" d="M 1078,94 L 1077,136 L 1032,137 L 1032,221 L 1108,221 L 1108,240 L 1125,240 L 1125,187 L 1162,187 L 1162,129 L 1132,129 L 1132,94 Z"></path>
+      <path class="province lvl-3" data-idx="38" data-name="Holyspring City" data-level="3" data-out="Grain Output 10" d="M 996,522 L 1073,522 L 1074,495 L 1134,495 L 1134,447 L 1106,447 L 1106,426 L 1028,426 L 1028,489 L 996,490 Z"></path>
+      <path class="province lvl-1" data-idx="39" data-name="Pinewood Grove" data-level="1" data-out="Timber Output 5" d="M 1262,276 L 1242,276 L 1242,305 L 1170,305 L 1170,376 L 1201,377 L 1201,434 L 1262,434 Z"></path>
+      <path class="province lvl-4" data-idx="40" data-name="Dawnhold" data-level="4" data-out="Grain Gather Spd 15" d="M 552,333 L 552,368 L 578,369 L 578,404 L 642,404 L 643,383 L 747,383 L 747,322 L 727,321 L 727,296 L 689,296 L 688,267 L 611,267 L 608,333 Z"></path>
+      <path class="province lvl-1" data-idx="41" data-name="Howling Vale" data-level="1" data-out="Timber Output 5" d="M 1159,916 L 1159,1020 L 1184,1019 L 1185,1035 L 1262,1035 L 1262,916 Z"></path>
+      <path class="province lvl-2" data-idx="42" data-name="Windwhisper Market" data-level="2" data-out="Grain Gather Spd 10" d="M 1195,382 L 1164,382 L 1164,322 L 1115,322 L 1115,341 L 1051,341 L 1051,375 L 1030,376 L 1030,419 L 1111,419 L 1112,440 L 1134,440 L 1134,419 L 1195,419 Z"></path>
+      <path class="province lvl-2" data-idx="43" data-name="Fisher's Bay" data-level="2" data-out="Timber Output 5" d="M 261,241 L 261,323 L 381,323 L 382,299 L 446,299 L 446,210 L 326,210 L 326,241 Z"></path>
+      <path class="province lvl-2" data-idx="44" data-name="Sailshadow Harbor" data-level="2" data-out="Grain Gather Spd 5" d="M 286,687 L 248,686 L 248,662 L 192,662 L 192,690 L 45,690 L 45,774 L 140,774 L 141,758 L 270,758 L 271,744 L 286,744 Z"></path>
+      <path class="province lvl-1" data-idx="45" data-name="Eagles Peak" data-level="1" data-out="Grain Output 5" d="M 1,755 L 1,920 L 114,920 L 114,835 L 140,835 L 140,780 L 39,780 L 39,755 Z"></path>
+      <path class="province lvl-1" data-idx="46" data-name="Red Soil Wastes" data-level="1" data-out="Grain Output 5" d="M 62,212 L 62,261 L 125,261 L 125,335 L 153,335 L 153,315 L 255,315 L 255,241 L 234,240 L 234,212 Z"></path>
+      <path class="province lvl-1" data-idx="47" data-name="Narroway" data-level="1" data-out="Timber Output 5" d="M 550,968 L 550,1035 L 693,1035 L 693,990 L 654,990 L 654,968 Z"></path>
+      <path class="province lvl-1" data-idx="48" data-name="Mistveil Village" data-level="1" data-out="Grain Output 5" d="M 1040,783 L 1040,877 L 1124,877 L 1124,858 L 1153,858 L 1153,783 Z"></path>
+      <path class="province lvl-1" data-idx="49" data-name="Coal Pit" data-level="1" data-out="Grain Output 5" d="M 401,968 L 401,1035 L 544,1035 L 544,968 L 516,968 L 516,948 L 428,948 L 428,968 Z"></path>
+      <path class="province lvl-2" data-idx="50" data-name="Irongate Town" data-level="2" data-out="Herb Output 5" d="M 409,882 L 409,928 L 428,928 L 428,942 L 522,942 L 523,962 L 546,962 L 547,944 L 580,944 L 580,916 L 558,915 L 558,854 L 448,854 L 447,882 Z"></path>
+      <path class="province lvl-1" data-idx="51" data-name="Windmill Town" data-level="1" data-out="Timber Output 5" d="M 241,1 L 241,80 L 326,80 L 327,102 L 396,102 L 396,1 Z"></path>
+      <path class="province lvl-2" data-idx="52" data-name="Echo Town" data-level="2" data-out="Herb Output 5" d="M 301,894 L 277,894 L 276,904 L 120,904 L 120,976 L 301,976 Z"></path>
+      <path class="province lvl-2" data-idx="53" data-name="Twinspire Town" data-level="2" data-out="Grain Gather Spd 5" d="M 872,141 L 872,191 L 860,191 L 860,273 L 886,273 L 886,299 L 989,299 L 989,221 L 1026,221 L 1026,190 L 911,190 L 910,141 Z"></path>
+      <path class="province lvl-2" data-idx="54" data-name="Beacon Point" data-level="2" data-out="Grain Gather Spd 5" d="M 828,892 L 829,904 L 858,905 L 858,962 L 935,962 L 936,926 L 999,926 L 1000,900 L 1034,900 L 1034,866 L 858,866 L 857,892 Z"></path>
+      <path class="province lvl-4" data-idx="55" data-name="Mithril Hall" data-level="4" data-out="Timber Output 15" d="M 814,737 L 826,737 L 827,723 L 895,723 L 895,701 L 1012,701 L 1012,622 L 880,621 L 880,687 L 814,688 Z"></path>
+      <path class="province lvl-2" data-idx="56" data-name="Goldgrain Town" data-level="2" data-out="Herb Output 5" d="M 125,341 L 125,371 L 178,371 L 179,391 L 214,391 L 214,422 L 251,422 L 251,383 L 272,383 L 272,366 L 321,366 L 321,329 L 255,329 L 255,321 L 159,321 L 158,341 Z"></path>
+      <path class="province lvl-1" data-idx="57" data-name="Bluestone Slope" data-level="1" data-out="Timber Output 5" d="M 893,1 L 893,135 L 926,135 L 927,72 L 1022,72 L 1022,1 Z"></path>
+      <path class="province lvl-1" data-idx="58" data-name="Springhead" data-level="1" data-out="Timber Output 5" d="M 1140,426 L 1140,529 L 1200,529 L 1200,556 L 1262,556 L 1262,440 L 1195,439 L 1195,426 Z"></path>
+      <path class="province lvl-3" data-idx="59" data-name="Drywell Tower" data-level="3" data-out="Herb Output 10" d="M 854,191 L 808,191 L 808,205 L 766,206 L 765,192 L 740,192 L 740,238 L 694,238 L 694,290 L 732,290 L 733,315 L 752,315 L 753,333 L 800,333 L 800,273 L 854,273 Z"></path>
+      <path class="province lvl-1" data-idx="60" data-name="Old Oak" data-level="1" data-out="Timber Output 5" d="M 1,1 L 1,120 L 116,120 L 116,1 Z"></path>
+      <path class="province lvl-2" data-idx="61" data-name="Whitestone Town" data-level="2" data-out="Grain Gather Spd 5" d="M 241,86 L 240,116 L 204,115 L 204,206 L 240,206 L 240,235 L 320,235 L 320,87 Z"></path>
+      <path class="province lvl-1" data-idx="62" data-name="Wheatsheaf" data-level="1" data-out="Grain Output 5" d="M 1028,1 L 1028,40 L 1078,40 L 1078,88 L 1132,88 L 1132,59 L 1162,59 L 1163,28 L 1196,28 L 1196,1 Z"></path>
+      <path class="province lvl-1" data-idx="63" data-name="Plaster Wall" data-level="1" data-out="Grain Output 5" d="M 557,25 L 557,129 L 579,128 L 580,132 L 663,132 L 663,89 L 700,88 L 700,1 L 594,1 L 593,25 Z"></path>
+      <path class="province lvl-2" data-idx="64" data-name="Stardust Road" data-level="2" data-out="Grain Output 5" d="M 277,776 L 277,888 L 336,888 L 337,903 L 403,903 L 403,853 L 384,852 L 384,795 L 342,795 L 342,776 Z"></path>
+      <path class="province lvl-3" data-idx="65" data-name="Falcon's Keep" data-level="3" data-out="Timber Output 10" d="M 452,303 L 452,335 L 494,336 L 494,368 L 546,368 L 547,327 L 602,327 L 602,303 Z"></path>
+      <path class="province lvl-3" data-idx="66" data-name="Stormgate" data-level="3" data-out="Timber Output 10" d="M 255,545 L 255,680 L 320,680 L 320,639 L 331,638 L 331,581 L 349,581 L 349,545 Z"></path>
+      <path class="province lvl-2" data-idx="67" data-name="Greatwood Town" data-level="2" data-out="Herb Output 5" d="M 1040,714 L 1040,776 L 1170,776 L 1169,723 L 1149,722 L 1149,714 Z"></path>
+      <path class="province lvl-3" data-idx="68" data-name="Cloudtop Highlands" data-level="3" data-out="Timber Output 10" d="M 378,718 L 378,745 L 348,745 L 348,789 L 390,789 L 391,847 L 409,848 L 409,876 L 441,876 L 441,848 L 476,848 L 476,769 L 449,768 L 449,718 Z"></path>
+      <path class="province lvl-5" data-idx="69" data-name="Temple of War" data-level="5" data-out="Grain Output 20" d="M 790,535 L 790,647 L 814,647 L 814,681 L 874,681 L 874,615 L 1012,615 L 1012,528 L 990,528 L 989,512 L 825,512 L 824,535 Z"></path>
+      <path class="province lvl-4" data-idx="70" data-name="Everpeak" data-level="4" data-out="Grain Gather Spd 15" d="M 825,407 L 825,506 L 989,506 L 990,483 L 1022,483 L 1022,426 L 933,426 L 932,407 Z"></path>
+      <path class="province lvl-4" data-idx="71" data-name="Sunspire City" data-level="4" data-out="Grain Output 15" d="M 677,736 L 678,792 L 754,792 L 755,770 L 826,769 L 826,744 L 808,743 L 808,725 L 688,725 L 688,735 Z"></path>
+      <path class="province lvl-3" data-idx="72" data-name="Cliffside Citadel" data-level="3" data-out="Herb Output 10" d="M 567,734 L 525,734 L 524,744 L 455,744 L 455,762 L 482,763 L 482,848 L 568,848 Z"></path>
+      <path class="province lvl-1" data-idx="73" data-name="Broken Bridgehead" data-level="1" data-out="Timber Output 5" d="M 326,108 L 326,204 L 451,204 L 452,227 L 485,227 L 485,108 Z"></path>
+      <path class="province lvl-2" data-idx="74" data-name="Rose Garden" data-level="2" data-out="Herb Output 5" d="M 1034,776 L 896,776 L 896,817 L 858,818 L 858,860 L 1034,860 Z"></path>
+      <path class="province lvl-1" data-idx="75" data-name="Crow's Beak" data-level="1" data-out="Grain Output 5" d="M 87,378 L 87,475 L 236,475 L 236,428 L 208,427 L 208,397 L 173,397 L 172,378 Z"></path>
+      <path class="province lvl-2" data-idx="76" data-name="Old Mill" data-level="2" data-out="Grain Output 5" d="M 146,765 L 146,841 L 120,841 L 120,898 L 270,898 L 271,765 Z"></path>
+      <path class="province lvl-1" data-idx="77" data-name="Pinecone Market" data-level="1" data-out="Grain Output 5" d="M 1130,864 L 1130,888 L 1158,888 L 1159,910 L 1262,910 L 1262,835 L 1199,834 L 1199,821 L 1160,821 L 1159,864 Z"></path>
+      <path class="province lvl-2" data-idx="78" data-name="Rose Court" data-level="2" data-out="Herb Output 5" d="M 390,630 L 337,630 L 337,644 L 326,645 L 326,686 L 292,686 L 292,750 L 277,750 L 277,770 L 342,770 L 342,740 L 372,739 L 372,712 L 420,712 L 420,668 L 390,668 Z"></path>
+      <path class="province lvl-1" data-idx="79" data-name="Birchwood Grove" data-level="1" data-out="Timber Output 5" d="M 996,227 L 996,299 L 1033,299 L 1033,335 L 1109,335 L 1109,315 L 1164,315 L 1164,299 L 1175,299 L 1175,246 L 1102,246 L 1102,227 Z"></path>
+      <path class="province lvl-4" data-idx="80" data-name="Emerald City" data-level="4" data-out="Grain Gather Spd 15" d="M 574,617 L 574,776 L 671,776 L 671,730 L 682,729 L 682,702 L 593,702 L 593,617 Z"></path>
+      <path class="province lvl-1" data-idx="81" data-name="Dry Well" data-level="1" data-out="Grain Output 5" d="M 307,894 L 307,976 L 341,976 L 342,998 L 395,998 L 395,962 L 422,961 L 422,934 L 403,934 L 403,910 L 331,909 L 330,894 Z"></path>
+      <path class="province lvl-1" data-idx="82" data-name="Redbrick House" data-level="1" data-out="Grain Output 5" d="M 1262,693 L 1238,693 L 1237,723 L 1176,723 L 1176,782 L 1160,783 L 1160,815 L 1205,815 L 1205,829 L 1262,829 Z"></path>
+      <path class="province lvl-3" data-idx="83" data-name="Gale Heights" data-level="3" data-out="Timber Output 10" d="M 257,389 L 257,427 L 242,428 L 242,475 L 295,475 L 295,490 L 321,490 L 322,475 L 380,475 L 380,397 L 322,397 L 321,372 L 278,372 L 277,389 Z"></path>
+      <path class="province lvl-2" data-idx="84" data-name="Blackwater Ferry" data-level="2" data-out="Grain Gather Spd 5" d="M 735,798 L 735,822 L 754,823 L 754,886 L 851,886 L 851,812 L 889,812 L 890,776 L 760,776 L 760,798 Z"></path>
+      <path class="province lvl-6" data-idx="85" data-name="Nightfall Fortress" data-level="6" data-out="Research Spd 20" d="M 599,617 L 599,696 L 688,696 L 688,718 L 808,718 L 808,653 L 783,652 L 783,535 L 762,535 L 761,515 L 715,516 L 715,575 L 678,575 L 678,617 Z"></path>
+      <path class="royal-box" d="M 564,470 L 564,569 L 706,569 L 706,470 Z"></path>
+      <image id="crownImg" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMzAwIiB6b29tQW5kUGFuPSJtYWduaWZ5IiB2aWV3Qm94PSIwIDAgMjI0Ljg3OTk5IDEyNy41MDAwMDEiIGhlaWdodD0iMTcwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBtZWV0IiB2ZXJzaW9uPSIxLjAiPjxkZWZzPjxjbGlwUGF0aCBpZD0iMjU5YWRmNGRmMiI+PHBhdGggZD0iTSAxMS45NzI2NTYgMy40NzI2NTYgTCAyMTIuOTMzNTk0IDMuNDcyNjU2IEwgMjEyLjkzMzU5NCAxMjMuNzUgTCAxMS45NzI2NTYgMTIzLjc1IFogTSAxMS45NzI2NTYgMy40NzI2NTYgIiBjbGlwLXJ1bGU9Im5vbnplcm8iLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjMjU5YWRmNGRmMikiPjxwYXRoIGZpbGw9IiNiODgxMjgiIGQ9Ik0gMjA3LjM5ODQzOCA0Ny45MTQwNjIgTCAyMDguMjEwOTM4IDUxLjQyOTY4OCBDIDE4MS44MjAzMTIgODAuNjc5Njg4IDE2NC4zOTQ1MzEgOTQuNTE1NjI1IDE1OS4zMDQ2ODggODcuMTQ0NTMxIEMgMTU1LjI0MjE4OCA3My4xNTIzNDQgMTU3LjI3NzM0NCA1OS4zMTI1IDE2My42Njc5NjkgNDUuNTg1OTM4IEwgMTY5LjA5NzY1NiA0My4wNDI5NjkgTCAxNzAuMTQ4NDM4IDMxIEwgMTYxLjgwMDc4MSAzOS43NDIxODggTCAxNjMuNTExNzE5IDQ1LjYwNTQ2OSBDIDE1Ni42MTMyODEgNTcuMTc5Njg4IDE0OS4xOTkyMTkgNjcuNDMzNTk0IDE0MC43MjI2NTYgNzQuOTI1NzgxIEMgMTMxLjc5Njg3NSA4Mi44MTI1IDEyOS4wNzAzMTIgODMuOTE3OTY5IDEyMy4zMDA3ODEgNzEuNTExNzE5IEMgMTE5LjAyMzQzOCA2Mi4zMTY0MDYgMTE3LjU1ODU5NCA1MCAxMTQuNjgzNTk0IDM5LjI0NjA5NCBMIDEyMS45OTYwOTQgMzAuNzEwOTM4IEwgMTEyLjQzNzUgMy40OTYwOTQgTCAxMDIuODgyODEyIDMwLjcwNzAzMSBMIDExMC4xOTUzMTIgMzkuMjQyMTg4IEMgMTA3LjMyMDMxMiA0OS45OTYwOTQgMTA1Ljg1NTQ2OSA2Mi4zMTY0MDYgMTAxLjU3ODEyNSA3MS41MTE3MTkgQyA5NS44MDQ2ODggODMuOTE3OTY5IDkzLjA4NTkzOCA4Mi44MTI1IDg0LjE1NjI1IDc0LjkyMTg3NSBDIDc1LjY3NTc4MSA2Ny40Mjk2ODggNjguMjYxNzE5IDU3LjE3NTc4MSA2MS4zNjMyODEgNDUuNTk3NjU2IEwgNjMuMDc0MjE5IDM5Ljc0MjE4OCBMIDU0LjcyNjU2MiAzMSBMIDU1Ljc3MzQzOCA0My4wMzkwNjIgTCA2MS4yMDcwMzEgNDUuNTgyMDMxIEMgNjcuNTk3NjU2IDU5LjMxMjUgNjkuNjMyODEyIDczLjE0ODQzOCA2NS41NzAzMTIgODcuMTQwNjI1IEMgNjAuNDg0Mzc1IDk0LjUxNTYyNSA0My4wNTg1OTQgODAuNjc5Njg4IDE2LjY2NDA2MiA1MS40Mjk2ODggTCAxNy40NzI2NTYgNDcuOTE0MDYyIEwgMTEuOTcyNjU2IDQyLjc3MzQzOCBMIDEzLjA1NDY4OCA1MC4yMjI2NTYgTCAxNi4zMjAzMTIgNTEuNTMxMjUgTCA1Mi41MzkwNjIgMTE0LjU4NTkzOCBDIDUyLjUxNTYyNSAxMTQuNjAxNTYyIDUyLjUgMTE0LjYwOTM3NSA1Mi41IDExNC42MDkzNzUgTCA1My45MTQwNjIgMTE2Ljk4NDM3NSBDIDExOC45MTAxNTYgOTUuNTU4NTk0IDE1OS4wNTA3ODEgMTEzLjI1MzkwNiAxNTkuMDUwNzgxIDExMy4yNTM5MDYgQyAxNTkuMDUwNzgxIDExMy4yNTM5MDYgMTQzLjE0NDUzMSAxMDMuMjQyMTg4IDEwNy40MjE4NzUgMTAzLjMxNjQwNiBDIDgxLjA3MDMxMiAxMDMuMjYxNzE5IDYzLjcxMDkzOCAxMDkuNDMzNTk0IDU2LjQxNzk2OSAxMTIuNjc1NzgxIEwgNDIuMzcxMDk0IDg1LjE4NzUgQyA0Mi42MDU0NjkgODUuMzc4OTA2IDQyLjgzOTg0NCA4NS41NjY0MDYgNDMuMDc0MjE5IDg1Ljc1MzkwNiBDIDQ4Ljk1NzAzMSA5MC40Njg3NSA1OS4yNzM0MzggOTguMTA1NDY5IDY3LjA4OTg0NCA5My41NTQ2ODggQyA2OC40MTQwNjIgOTIuNzg1MTU2IDY5LjUyMzQzOCA5MS43MzA0NjkgNzAuMzk0NTMxIDkwLjQ3MjY1NiBMIDcwLjkzMzU5NCA4OS42ODc1IEwgNzEuMTk5MjE5IDg4Ljc3NzM0NCBDIDcyLjc3MzQzOCA4My4zNDM3NSA3My41MTE3MTkgNzcuOTQ5MjE5IDczLjUxOTUzMSA3Mi42MTMyODEgQyA3NS42Njc5NjkgNzQuOTgwNDY5IDc3LjkxNDA2MiA3Ny4yMjY1NjIgODAuMjc3MzQ0IDc5LjMxMjUgQyA4NC4yNSA4Mi44MjQyMTkgODkuMjg1MTU2IDg3LjQ1MzEyNSA5NS4wMjczNDQgODYuNjA1NDY5IEMgMTAxLjIzNDM3NSA4NS42OTE0MDYgMTA0LjUyMzQzOCA3OS4wNzQyMTkgMTA2Ljg5MDYyNSA3My45ODA0NjkgQyAxMDkuNTE5NTMxIDY4LjMzNTkzOCAxMTEuMDg5ODQ0IDYyLjA0Mjk2OSAxMTIuNDQxNDA2IDU1Ljg3NSBDIDExMy43OTI5NjkgNjIuMDQyOTY5IDExNS4zNjMyODEgNjguMzM1OTM4IDExNy45ODgyODEgNzMuOTgwNDY5IEMgMTIwLjM1OTM3NSA3OS4wNzAzMTIgMTIzLjY0NDUzMSA4NS42OTE0MDYgMTI5Ljg1MTU2MiA4Ni42MDU0NjkgQyAxMzUuNTk3NjU2IDg3LjQ1MzEyNSAxNDAuNjI4OTA2IDgyLjgyNDIxOSAxNDQuNjAxNTYyIDc5LjMxMjUgQyAxNDYuOTY0ODQ0IDc3LjIyNjU2MiAxNDkuMjE0ODQ0IDc0Ljk4MDQ2OSAxNTEuMzU1NDY5IDcyLjYxMzI4MSBDIDE1MS4zNzEwOTQgNzcuOTUzMTI1IDE1Mi4xMDU0NjkgODMuMzQ3NjU2IDE1My42Nzk2ODggODguNzc3MzQ0IEwgMTUzLjk0NTMxMiA4OS42ODc1IEwgMTU0LjQ4NDM3NSA5MC40NzI2NTYgQyAxNTUuMzU1NDY5IDkxLjczMDQ2OSAxNTYuNDYwOTM4IDkyLjc4NTE1NiAxNTcuNzg5MDYyIDkzLjU1NDY4OCBDIDE2NS42MDkzNzUgOTguMTA1NDY5IDE3NS45MTc5NjkgOTAuNDY4NzUgMTgxLjgwNDY4OCA4NS43NTM5MDYgQyAxODIuMDE5NTMxIDg1LjU4NTkzOCAxODIuMjMwNDY5IDg1LjQxNDA2MiAxODIuNDQxNDA2IDg1LjI0MjE4OCBMIDE2NC4wMDc4MTIgMTE3LjM4MjgxMiBDIDE1NS41IDExNC40ODQzNzUgMTM4LjY2MDE1NiAxMTAuMTAxNTYyIDExNC43MzA0NjkgMTEwLjE0ODQzOCBDIDc5LjI4NTE1NiAxMTAuMDc4MTI1IDYzLjM1MTU2MiAxMTkuOTMzNTk0IDYzLjEwNTQ2OSAxMjAuMDg5ODQ0IEMgNjMuNDgwNDY5IDExOS45MjU3ODEgMTAwLjgwMDc4MSAxMDMuNjk5MjE5IDE2MS41MjM0MzggMTIxLjcxNDg0NCBDIDE2My40MjE4NzUgMTIyLjI4MTI1IDE2NS4zNDM3NSAxMjIuODc1IDE2Ny4yODUxNTYgMTIzLjUwNzgxMiBMIDIwOC41NTg1OTQgNTEuNTMxMjUgTCAyMTEuODIwMzEyIDUwLjIyNjU2MiBMIDIxMi45MDIzNDQgNDIuNzc3MzQ0IFogTSAyMDcuMzk4NDM4IDQ3LjkxNDA2MiAiIGZpbGwtb3BhY2l0eT0iMSIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9nPjwvc3ZnPg==" x="607" y="493" width="56" height="31.75" preserveAspectRatio="xMidYMid meet"></image>
+      <text class="royal-label" x="635" y="543">ROYAL CITY</text>
+      <path class="status-overlay" data-idx="0" d="M 572,374 L 494,374 L 493,397 L 386,397 L 386,475 L 449,475 L 449,450 L 572,450 Z"></path>
+      <path class="status-overlay" data-idx="1" d="M 707,1 L 707,78 L 837,78 L 838,135 L 886,135 L 886,1 Z"></path>
+      <path class="status-overlay" data-idx="2" d="M 124,593 L 248,593 L 248,539 L 302,538 L 302,496 L 289,495 L 289,481 L 152,481 L 152,566 L 124,567 Z"></path>
+      <path class="status-overlay" data-idx="3" d="M 886,305 L 886,341 L 939,342 L 939,419 L 1024,419 L 1024,370 L 1044,370 L 1044,341 L 1027,340 L 1027,305 Z"></path>
+      <path class="status-overlay" data-idx="4" d="M 1018,528 L 1018,601 L 1194,601 L 1194,535 L 1134,535 L 1134,502 L 1080,502 L 1079,528 Z"></path>
+      <path class="status-overlay" data-idx="5" d="M 1168,129 L 1168,193 L 1131,193 L 1131,240 L 1181,240 L 1182,299 L 1236,299 L 1236,270 L 1262,270 L 1262,129 Z"></path>
+      <path class="status-overlay" data-idx="6" d="M 660,968 L 660,984 L 700,984 L 700,1035 L 831,1035 L 831,968 Z"></path>
+      <path class="status-overlay" data-idx="7" d="M 670,95 L 670,186 L 770,186 L 772,199 L 802,199 L 802,185 L 866,185 L 866,141 L 831,141 L 831,84 L 707,84 L 707,94 Z"></path>
+      <path class="status-overlay" data-idx="8" d="M 1,127 L 1,261 L 56,261 L 57,206 L 198,206 L 198,139 L 116,139 L 116,127 Z"></path>
+      <path class="status-overlay" data-idx="9" d="M 308,496 L 308,538 L 355,538 L 356,557 L 427,557 L 428,547 L 487,547 L 487,506 L 450,506 L 449,481 L 328,481 L 327,496 Z"></path>
+      <path class="status-overlay" data-idx="10" d="M 660,924 L 660,961 L 851,961 L 851,910 L 822,910 L 822,892 L 737,892 L 737,905 L 705,905 L 705,924 Z"></path>
+      <path class="status-overlay" data-idx="11" d="M 579,139 L 579,211 L 611,211 L 611,261 L 688,261 L 689,232 L 734,232 L 734,192 L 663,192 L 663,139 Z"></path>
+      <path class="status-overlay" data-idx="12" d="M 403,1 L 403,102 L 491,102 L 491,129 L 551,129 L 551,19 L 587,19 L 587,1 Z"></path>
+      <path class="status-overlay" data-idx="13" d="M 1,481 L 1,593 L 118,593 L 118,561 L 145,561 L 145,481 Z"></path>
+      <path class="status-overlay" data-idx="14" d="M 491,135 L 491,232 L 452,233 L 452,297 L 605,297 L 605,217 L 572,217 L 572,135 Z"></path>
+      <path class="status-overlay" data-idx="15" d="M 837,968 L 837,1035 L 995,1035 L 995,988 L 970,988 L 969,968 Z"></path>
+      <path class="status-overlay" data-idx="16" d="M 455,456 L 455,500 L 494,500 L 494,600 L 517,601 L 517,648 L 568,648 L 568,611 L 672,611 L 672,575 L 561,575 L 561,465 L 572,465 L 572,456 Z"></path>
+      <path class="status-overlay" data-idx="17" d="M 101,599 L 101,684 L 186,684 L 187,655 L 248,655 L 248,599 Z"></path>
+      <path class="status-overlay" data-idx="18" d="M 1262,563 L 1200,563 L 1199,607 L 1155,607 L 1155,716 L 1231,716 L 1232,686 L 1262,686 Z"></path>
+      <path class="status-overlay" data-idx="19" d="M 578,410 L 578,465 L 715,465 L 715,509 L 767,509 L 768,529 L 819,529 L 819,407 L 799,407 L 799,389 L 649,389 L 648,410 Z"></path>
+      <path class="status-overlay" data-idx="20" d="M 95,599 L 1,599 L 1,749 L 39,749 L 40,684 L 95,684 Z"></path>
+      <path class="status-overlay" data-idx="21" d="M 574,782 L 574,848 L 677,848 L 677,877 L 705,877 L 705,898 L 731,898 L 732,886 L 748,886 L 748,829 L 729,828 L 729,798 L 672,798 L 671,782 Z"></path>
+      <path class="status-overlay" data-idx="22" d="M 427,668 L 427,712 L 455,712 L 455,738 L 518,738 L 519,728 L 568,728 L 568,655 L 511,654 L 511,606 L 480,606 L 480,618 L 464,618 L 464,668 Z"></path>
+      <path class="status-overlay" data-idx="23" d="M 220,983 L 220,1035 L 395,1035 L 395,1004 L 336,1004 L 335,983 Z"></path>
+      <path class="status-overlay" data-idx="24" d="M 1262,1 L 1202,1 L 1202,35 L 1168,35 L 1168,65 L 1138,65 L 1138,123 L 1262,123 Z"></path>
+      <path class="status-overlay" data-idx="25" d="M 1018,607 L 1018,701 L 1040,701 L 1040,708 L 1149,708 L 1149,607 Z"></path>
+      <path class="status-overlay" data-idx="26" d="M 1,926 L 1,1035 L 214,1035 L 214,983 L 114,982 L 114,926 Z"></path>
+      <path class="status-overlay" data-idx="27" d="M 122,1 L 122,132 L 198,132 L 199,109 L 234,109 L 234,1 Z"></path>
+      <path class="status-overlay" data-idx="28" d="M 753,339 L 753,383 L 804,383 L 805,401 L 932,401 L 932,347 L 880,347 L 880,279 L 807,279 L 806,338 Z"></path>
+      <path class="status-overlay" data-idx="29" d="M 552,961 L 654,962 L 654,918 L 699,918 L 699,884 L 671,883 L 671,854 L 565,854 L 564,909 L 586,910 L 586,950 L 552,951 Z"></path>
+      <path class="status-overlay" data-idx="30" d="M 1,267 L 1,475 L 80,475 L 80,372 L 119,371 L 119,267 Z"></path>
+      <path class="status-overlay" data-idx="31" d="M 328,329 L 328,391 L 487,391 L 487,341 L 446,341 L 446,305 L 387,305 L 386,329 Z"></path>
+      <path class="status-overlay" data-idx="32" d="M 1071,46 L 1028,46 L 1028,79 L 932,79 L 932,141 L 917,141 L 917,184 L 1025,184 L 1026,131 L 1071,130 Z"></path>
+      <path class="status-overlay" data-idx="33" d="M 1002,988 L 1002,1035 L 1179,1035 L 1179,1026 L 1153,1025 L 1153,965 L 1043,965 L 1042,988 Z"></path>
+      <path class="status-overlay" data-idx="34" d="M 487,553 L 434,553 L 433,563 L 355,563 L 356,586 L 337,587 L 337,624 L 395,624 L 396,662 L 458,662 L 458,612 L 474,611 L 475,600 L 487,600 Z"></path>
+      <path class="status-overlay" data-idx="35" d="M 832,729 L 832,770 L 1034,769 L 1034,707 L 901,707 L 900,729 Z"></path>
+      <path class="status-overlay" data-idx="36" d="M 941,933 L 941,961 L 975,961 L 976,982 L 1036,982 L 1038,959 L 1153,959 L 1153,894 L 1125,894 L 1124,883 L 1040,883 L 1039,906 L 1006,906 L 1005,933 Z"></path>
+      <path class="status-overlay" data-idx="37" d="M 1078,94 L 1077,136 L 1032,137 L 1032,221 L 1108,221 L 1108,240 L 1125,240 L 1125,187 L 1162,187 L 1162,129 L 1132,129 L 1132,94 Z"></path>
+      <path class="status-overlay" data-idx="38" d="M 996,522 L 1073,522 L 1074,495 L 1134,495 L 1134,447 L 1106,447 L 1106,426 L 1028,426 L 1028,489 L 996,490 Z"></path>
+      <path class="status-overlay" data-idx="39" d="M 1262,276 L 1242,276 L 1242,305 L 1170,305 L 1170,376 L 1201,377 L 1201,434 L 1262,434 Z"></path>
+      <path class="status-overlay" data-idx="40" d="M 552,333 L 552,368 L 578,369 L 578,404 L 642,404 L 643,383 L 747,383 L 747,322 L 727,321 L 727,296 L 689,296 L 688,267 L 611,267 L 608,333 Z"></path>
+      <path class="status-overlay" data-idx="41" d="M 1159,916 L 1159,1020 L 1184,1019 L 1185,1035 L 1262,1035 L 1262,916 Z"></path>
+      <path class="status-overlay" data-idx="42" d="M 1195,382 L 1164,382 L 1164,322 L 1115,322 L 1115,341 L 1051,341 L 1051,375 L 1030,376 L 1030,419 L 1111,419 L 1112,440 L 1134,440 L 1134,419 L 1195,419 Z"></path>
+      <path class="status-overlay" data-idx="43" d="M 261,241 L 261,323 L 381,323 L 382,299 L 446,299 L 446,210 L 326,210 L 326,241 Z"></path>
+      <path class="status-overlay" data-idx="44" d="M 286,687 L 248,686 L 248,662 L 192,662 L 192,690 L 45,690 L 45,774 L 140,774 L 141,758 L 270,758 L 271,744 L 286,744 Z"></path>
+      <path class="status-overlay" data-idx="45" d="M 1,755 L 1,920 L 114,920 L 114,835 L 140,835 L 140,780 L 39,780 L 39,755 Z"></path>
+      <path class="status-overlay" data-idx="46" d="M 62,212 L 62,261 L 125,261 L 125,335 L 153,335 L 153,315 L 255,315 L 255,241 L 234,240 L 234,212 Z"></path>
+      <path class="status-overlay" data-idx="47" d="M 550,968 L 550,1035 L 693,1035 L 693,990 L 654,990 L 654,968 Z"></path>
+      <path class="status-overlay" data-idx="48" d="M 1040,783 L 1040,877 L 1124,877 L 1124,858 L 1153,858 L 1153,783 Z"></path>
+      <path class="status-overlay" data-idx="49" d="M 401,968 L 401,1035 L 544,1035 L 544,968 L 516,968 L 516,948 L 428,948 L 428,968 Z"></path>
+      <path class="status-overlay" data-idx="50" d="M 409,882 L 409,928 L 428,928 L 428,942 L 522,942 L 523,962 L 546,962 L 547,944 L 580,944 L 580,916 L 558,915 L 558,854 L 448,854 L 447,882 Z"></path>
+      <path class="status-overlay" data-idx="51" d="M 241,1 L 241,80 L 326,80 L 327,102 L 396,102 L 396,1 Z"></path>
+      <path class="status-overlay" data-idx="52" d="M 301,894 L 277,894 L 276,904 L 120,904 L 120,976 L 301,976 Z"></path>
+      <path class="status-overlay" data-idx="53" d="M 872,141 L 872,191 L 860,191 L 860,273 L 886,273 L 886,299 L 989,299 L 989,221 L 1026,221 L 1026,190 L 911,190 L 910,141 Z"></path>
+      <path class="status-overlay" data-idx="54" d="M 828,892 L 829,904 L 858,905 L 858,962 L 935,962 L 936,926 L 999,926 L 1000,900 L 1034,900 L 1034,866 L 858,866 L 857,892 Z"></path>
+      <path class="status-overlay" data-idx="55" d="M 814,737 L 826,737 L 827,723 L 895,723 L 895,701 L 1012,701 L 1012,622 L 880,621 L 880,687 L 814,688 Z"></path>
+      <path class="status-overlay" data-idx="56" d="M 125,341 L 125,371 L 178,371 L 179,391 L 214,391 L 214,422 L 251,422 L 251,383 L 272,383 L 272,366 L 321,366 L 321,329 L 255,329 L 255,321 L 159,321 L 158,341 Z"></path>
+      <path class="status-overlay" data-idx="57" d="M 893,1 L 893,135 L 926,135 L 927,72 L 1022,72 L 1022,1 Z"></path>
+      <path class="status-overlay" data-idx="58" d="M 1140,426 L 1140,529 L 1200,529 L 1200,556 L 1262,556 L 1262,440 L 1195,439 L 1195,426 Z"></path>
+      <path class="status-overlay" data-idx="59" d="M 854,191 L 808,191 L 808,205 L 766,206 L 765,192 L 740,192 L 740,238 L 694,238 L 694,290 L 732,290 L 733,315 L 752,315 L 753,333 L 800,333 L 800,273 L 854,273 Z"></path>
+      <path class="status-overlay" data-idx="60" d="M 1,1 L 1,120 L 116,120 L 116,1 Z"></path>
+      <path class="status-overlay" data-idx="61" d="M 241,86 L 240,116 L 204,115 L 204,206 L 240,206 L 240,235 L 320,235 L 320,87 Z"></path>
+      <path class="status-overlay" data-idx="62" d="M 1028,1 L 1028,40 L 1078,40 L 1078,88 L 1132,88 L 1132,59 L 1162,59 L 1163,28 L 1196,28 L 1196,1 Z"></path>
+      <path class="status-overlay" data-idx="63" d="M 557,25 L 557,129 L 579,128 L 580,132 L 663,132 L 663,89 L 700,88 L 700,1 L 594,1 L 593,25 Z"></path>
+      <path class="status-overlay" data-idx="64" d="M 277,776 L 277,888 L 336,888 L 337,903 L 403,903 L 403,853 L 384,852 L 384,795 L 342,795 L 342,776 Z"></path>
+      <path class="status-overlay" data-idx="65" d="M 452,303 L 452,335 L 494,336 L 494,368 L 546,368 L 547,327 L 602,327 L 602,303 Z"></path>
+      <path class="status-overlay" data-idx="66" d="M 255,545 L 255,680 L 320,680 L 320,639 L 331,638 L 331,581 L 349,581 L 349,545 Z"></path>
+      <path class="status-overlay" data-idx="67" d="M 1040,714 L 1040,776 L 1170,776 L 1169,723 L 1149,722 L 1149,714 Z"></path>
+      <path class="status-overlay" data-idx="68" d="M 378,718 L 378,745 L 348,745 L 348,789 L 390,789 L 391,847 L 409,848 L 409,876 L 441,876 L 441,848 L 476,848 L 476,769 L 449,768 L 449,718 Z"></path>
+      <path class="status-overlay" data-idx="69" d="M 790,535 L 790,647 L 814,647 L 814,681 L 874,681 L 874,615 L 1012,615 L 1012,528 L 990,528 L 989,512 L 825,512 L 824,535 Z"></path>
+      <path class="status-overlay" data-idx="70" d="M 825,407 L 825,506 L 989,506 L 990,483 L 1022,483 L 1022,426 L 933,426 L 932,407 Z"></path>
+      <path class="status-overlay" data-idx="71" d="M 677,736 L 678,792 L 754,792 L 755,770 L 826,769 L 826,744 L 808,743 L 808,725 L 688,725 L 688,735 Z"></path>
+      <path class="status-overlay" data-idx="72" d="M 567,734 L 525,734 L 524,744 L 455,744 L 455,762 L 482,763 L 482,848 L 568,848 Z"></path>
+      <path class="status-overlay" data-idx="73" d="M 326,108 L 326,204 L 451,204 L 452,227 L 485,227 L 485,108 Z"></path>
+      <path class="status-overlay" data-idx="74" d="M 1034,776 L 896,776 L 896,817 L 858,818 L 858,860 L 1034,860 Z"></path>
+      <path class="status-overlay" data-idx="75" d="M 87,378 L 87,475 L 236,475 L 236,428 L 208,427 L 208,397 L 173,397 L 172,378 Z"></path>
+      <path class="status-overlay" data-idx="76" d="M 146,765 L 146,841 L 120,841 L 120,898 L 270,898 L 271,765 Z"></path>
+      <path class="status-overlay" data-idx="77" d="M 1130,864 L 1130,888 L 1158,888 L 1159,910 L 1262,910 L 1262,835 L 1199,834 L 1199,821 L 1160,821 L 1159,864 Z"></path>
+      <path class="status-overlay" data-idx="78" d="M 390,630 L 337,630 L 337,644 L 326,645 L 326,686 L 292,686 L 292,750 L 277,750 L 277,770 L 342,770 L 342,740 L 372,739 L 372,712 L 420,712 L 420,668 L 390,668 Z"></path>
+      <path class="status-overlay" data-idx="79" d="M 996,227 L 996,299 L 1033,299 L 1033,335 L 1109,335 L 1109,315 L 1164,315 L 1164,299 L 1175,299 L 1175,246 L 1102,246 L 1102,227 Z"></path>
+      <path class="status-overlay" data-idx="80" d="M 574,617 L 574,776 L 671,776 L 671,730 L 682,729 L 682,702 L 593,702 L 593,617 Z"></path>
+      <path class="status-overlay" data-idx="81" d="M 307,894 L 307,976 L 341,976 L 342,998 L 395,998 L 395,962 L 422,961 L 422,934 L 403,934 L 403,910 L 331,909 L 330,894 Z"></path>
+      <path class="status-overlay" data-idx="82" d="M 1262,693 L 1238,693 L 1237,723 L 1176,723 L 1176,782 L 1160,783 L 1160,815 L 1205,815 L 1205,829 L 1262,829 Z"></path>
+      <path class="status-overlay" data-idx="83" d="M 257,389 L 257,427 L 242,428 L 242,475 L 295,475 L 295,490 L 321,490 L 322,475 L 380,475 L 380,397 L 322,397 L 321,372 L 278,372 L 277,389 Z"></path>
+      <path class="status-overlay" data-idx="84" d="M 735,798 L 735,822 L 754,823 L 754,886 L 851,886 L 851,812 L 889,812 L 890,776 L 760,776 L 760,798 Z"></path>
+      <path class="status-overlay" data-idx="85" d="M 599,617 L 599,696 L 688,696 L 688,718 L 808,718 L 808,653 L 783,652 L 783,535 L 762,535 L 761,515 L 715,516 L 715,575 L 678,575 L 678,617 Z"></path>
+      <g class="flag-marker" data-idx="0" transform="translate(475.1,424.0)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="0" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="0" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="1" transform="translate(810.2,71.3)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="1" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="1" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="2" transform="translate(223.0,534.9)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="2" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="2" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="3" transform="translate(984.0,355.2)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="3" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="3" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="4" transform="translate(1106.4,541.5)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="4" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="4" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="5" transform="translate(1195.7,226.2)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="5" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="5" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="6" transform="translate(730.3,995.7)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="6" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="6" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="7" transform="translate(774.5,148.2)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="7" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="7" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="8" transform="translate(92.9,183.2)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="8" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="8" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="9" transform="translate(392.5,520.8)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="9" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="9" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="10" transform="translate(755.0,918.4)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="10" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="10" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="11" transform="translate(655.1,207.0)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="11" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="11" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="12" transform="translate(508.0,62.8)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="12" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="12" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="13" transform="translate(88.0,545.0)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="13" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="13" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="14" transform="translate(530.0,220.4)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="14" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="14" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="15" transform="translate(933.8,997.0)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="15" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="15" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="16" transform="translate(548.4,550.8)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="16" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="16" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="17" transform="translate(178.5,646.0)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="17" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="17" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="18" transform="translate(1212.0,643.0)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="18" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="18" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="19" transform="translate(721.2,451.5)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="19" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="19" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="20" transform="translate(45.2,677.3)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="20" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="20" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="21" transform="translate(690.9,845.4)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="21" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="21" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="22" transform="translate(489.1,674.9)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="22" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="22" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="23" transform="translate(316.8,1007.3)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="23" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="23" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="24" transform="translate(1192.5,56.0)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="24" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="24" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="25" transform="translate(1069.0,672.0)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="25" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="25" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="26" transform="translate(109.7,981.2)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="26" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="26" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="27" transform="translate(184.8,80.7)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="27" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="27" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="28" transform="translate(835.2,349.7)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="28" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="28" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="29" transform="translate(621.1,912.8)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="29" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="29" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="30" transform="translate(66.7,371.2)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="30" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="30" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="31" transform="translate(411.9,341.5)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="31" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="31" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="32" transform="translate(994.7,116.1)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="32" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="32" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="33" transform="translate(1094.1,1003.4)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="33" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="33" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="34" transform="translate(420.1,600.0)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="34" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="34" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="35" transform="translate(922.2,735.2)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="35" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="35" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="36" transform="translate(1039.4,931.1)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="36" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="36" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="37" transform="translate(1106.1,167.9)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="37" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="37" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="38" transform="translate(1067.5,475.9)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="38" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="38" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="39" transform="translate(1218.8,347.9)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="39" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="39" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="40" transform="translate(649.2,339.0)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="40" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="40" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="41" transform="translate(1201.8,990.2)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="41" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="41" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="42" transform="translate(1114.4,385.5)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="42" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="42" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="43" transform="translate(353.6,268.2)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="43" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="43" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="44" transform="translate(197.0,719.1)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="44" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="44" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="45" transform="translate(73.5,822.5)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="45" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="45" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="46" transform="translate(165.8,272.7)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="46" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="46" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="47" transform="translate(632.3,997.7)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="47" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="47" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="48" transform="translate(1105.7,839.3)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="48" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="48" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="49" transform="translate(472.2,979.8)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="49" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="49" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="50" transform="translate(498.8,918.2)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="50" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="50" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="51" transform="translate(321.2,61.0)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="51" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="51" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="52" transform="translate(232.5,924.7)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="52" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="52" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="53" transform="translate(923.9,219.2)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="53" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="53" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="54" transform="translate(918.8,908.4)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="54" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="54" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="55" transform="translate(885.5,694.0)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="55" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="55" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="56" transform="translate(221.9,365.5)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="56" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="56" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="57" transform="translate(947.2,69.3)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="57" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="57" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="58" transform="translate(1199.2,487.6)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="58" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="58" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="59" transform="translate(768.3,254.7)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="59" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="59" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="60" transform="translate(58.5,60.5)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="60" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="60" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="61" transform="translate(251.1,160.8)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="61" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="61" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="62" transform="translate(1119.3,43.2)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="62" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="62" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="63" transform="translate(618.6,75.0)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="63" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="63" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="64" transform="translate(348.5,842.9)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="64" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="64" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="65" transform="translate(523.6,333.4)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="65" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="65" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="66" transform="translate(313.8,611.1)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="66" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="66" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="67" transform="translate(1119.5,737.5)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="67" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="67" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="68" transform="translate(413.1,798.9)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="68" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="68" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="69" transform="translate(884.0,586.3)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="69" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="69" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="70" transform="translate(942.2,455.5)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="70" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="70" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="71" transform="translate(750.8,753.1)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="71" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="71" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="72" transform="translate(507.2,772.1)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="72" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="72" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="73" transform="translate(420.8,179.7)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="73" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="73" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="74" transform="translate(929.3,817.8)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="74" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="74" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="75" transform="translate(175.9,419.4)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="75" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="75" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="76" transform="translate(178.8,834.7)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="76" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="76" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="77" transform="translate(1181.8,863.5)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="77" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="77" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="78" transform="translate(344.5,700.0)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="78" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="78" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="79" transform="translate(1096.5,286.8)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="79" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="79" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="80" transform="translate(630.0,706.1)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="80" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="80" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="81" transform="translate(366.5,945.5)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="81" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="81" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="82" transform="translate(1208.1,768.5)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="82" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="82" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="83" transform="translate(299.2,432.2)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="83" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="83" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="84" transform="translate(797.9,818.9)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="84" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="84" x="19" y="-8.5">XXX</text></g>
+      <g class="flag-marker" data-idx="85" transform="translate(718.9,615.6)" style="display:none;"><line x1="0" y1="-18" x2="0" y2="10" stroke="#fff" stroke-width="1.4"/><rect class="flag-banner fc-0" data-idx="85" x="1" y="-18" width="36" height="13" rx="1.5"></rect><text class="flag-text" data-idx="85" x="19" y="-8.5">XXX</text></g>
+      <text class="city-label" data-idx="0" x="528" y="409.5" text-anchor="middle"><tspan x="528" dy="0" class="label-name">Temple of Order</tspan><tspan x="528" dy="9.5" class="label-level">Lv.5</tspan></text>
+      <text class="city-label" data-idx="1" x="842" y="37.5" text-anchor="middle"><tspan x="842" dy="0" class="label-name">Ravens Roost</tspan><tspan x="842" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="2" x="201" y="527.5" text-anchor="middle"><tspan x="201" dy="0" class="label-name">Lark Lane</tspan><tspan x="201" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="3" x="984" y="347.5" text-anchor="middle"><tspan x="984" dy="0" class="label-name">Ironwall City</tspan><tspan x="984" dy="9.5" class="label-level">Lv.3</tspan></text>
+      <text class="city-label" data-idx="4" x="1103" y="557.5" text-anchor="middle"><tspan x="1103" dy="0" class="label-name">Silverleaf Grove</tspan><tspan x="1103" dy="9.5" class="label-level">Lv.3</tspan></text>
+      <text class="city-label" data-idx="5" x="1214" y="200.5" text-anchor="middle"><tspan x="1214" dy="0" class="label-name">Stag Path</tspan><tspan x="1214" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="6" x="733" y="998.5" text-anchor="middle"><tspan x="733" dy="0" class="label-name">Snail Shell</tspan><tspan x="733" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="7" x="779" y="133.5" text-anchor="middle"><tspan x="779" dy="0" class="label-name">Stonechant Market</tspan><tspan x="779" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="8" x="42" y="165.5" text-anchor="middle"><tspan x="42" dy="0" class="label-name">Opal Mine</tspan><tspan x="42" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="9" x="388" y="516.5" text-anchor="middle"><tspan x="388" dy="0" class="label-name">Phantom City</tspan><tspan x="388" dy="9.5" class="label-level">Lv.4</tspan></text>
+      <text class="city-label" data-idx="10" x="764" y="923.5" text-anchor="middle"><tspan x="764" dy="0" class="label-name">Scavenger</tspan><tspan x="764" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="11" x="621" y="173.5" text-anchor="middle"><tspan x="621" dy="0" class="label-name">Violet</tspan><tspan x="621" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="12" x="496" y="49.5" text-anchor="middle"><tspan x="496" dy="0" class="label-name">Copper Street</tspan><tspan x="496" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="13" x="57" y="534.5" text-anchor="middle"><tspan x="57" dy="0" class="label-name">Fox Den</tspan><tspan x="57" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="14" x="536" y="246.5" text-anchor="middle"><tspan x="536" dy="0" class="label-name">Amber Road</tspan><tspan x="536" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="15" x="870" y="994" text-anchor="middle"><tspan x="870" dy="0" class="label-name">Wildberry</tspan><tspan x="870" dy="9" class="label-name">Thicket</tspan><tspan x="870" dy="9" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="16" x="526" y="487.5" text-anchor="middle"><tspan x="526" dy="0" class="label-name">Sky Fortress</tspan><tspan x="526" dy="9.5" class="label-level">Lv.6</tspan></text>
+      <text class="city-label" data-idx="17" x="143" y="638.5" text-anchor="middle"><tspan x="143" dy="0" class="label-name">Graywolf Vale</tspan><tspan x="143" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="18" x="1201" y="649.5" text-anchor="middle"><tspan x="1201" dy="0" class="label-name">Mossy Crag</tspan><tspan x="1201" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="19" x="765" y="445.5" text-anchor="middle"><tspan x="765" dy="0" class="label-name">Lionheart Fortress</tspan><tspan x="765" dy="9.5" class="label-level">Lv.6</tspan></text>
+      <text class="city-label" data-idx="20" x="43" y="638.5" text-anchor="middle"><tspan x="43" dy="0" class="label-name">Maple Town</tspan><tspan x="43" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="21" x="607" y="808" text-anchor="middle"><tspan x="607" dy="0" class="label-name">Stillwater</tspan><tspan x="607" dy="9" class="label-name">River</tspan><tspan x="607" dy="9" class="label-level">Lv.3</tspan></text>
+      <text class="city-label" data-idx="22" x="497" y="690.5" text-anchor="middle"><tspan x="497" dy="0" class="label-name">Temple of Chaos</tspan><tspan x="497" dy="9.5" class="label-level">Lv.5</tspan></text>
+      <text class="city-label" data-idx="23" x="246" y="1002" text-anchor="middle"><tspan x="246" dy="0" class="label-name">Frostleaf</tspan><tspan x="246" dy="9" class="label-name">Market</tspan><tspan x="246" dy="9" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="24" x="1217" y="74.5" text-anchor="middle"><tspan x="1217" dy="0" class="label-name">Stonebrook Town</tspan><tspan x="1217" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="25" x="1068" y="654.5" text-anchor="middle"><tspan x="1068" dy="0" class="label-name">Nymph Falls</tspan><tspan x="1068" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="26" x="55" y="977.5" text-anchor="middle"><tspan x="55" dy="0" class="label-name">Haystack</tspan><tspan x="55" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="27" x="178" y="54.5" text-anchor="middle"><tspan x="178" dy="0" class="label-name">Gravel Slope</tspan><tspan x="178" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="28" x="841" y="357.5" text-anchor="middle"><tspan x="841" dy="0" class="label-name">Temple of Nature</tspan><tspan x="841" dy="9.5" class="label-level">Lv.5</tspan></text>
+      <text class="city-label" data-idx="29" x="623" y="891.5" text-anchor="middle"><tspan x="623" dy="0" class="label-name">Dripping Cavern</tspan><tspan x="623" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="30" x="56" y="319.5" text-anchor="middle"><tspan x="56" dy="0" class="label-name">Millstone Creek</tspan><tspan x="56" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="31" x="412" y="351.5" text-anchor="middle"><tspan x="412" dy="0" class="label-name">Deepmere Town</tspan><tspan x="412" dy="9.5" class="label-level">Lv.3</tspan></text>
+      <text class="city-label" data-idx="32" x="979" y="123.5" text-anchor="middle"><tspan x="979" dy="0" class="label-name">Sailport</tspan><tspan x="979" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="33" x="1075" y="997.5" text-anchor="middle"><tspan x="1075" dy="0" class="label-name">Lamp Pavillion</tspan><tspan x="1075" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="34" x="423" y="597.5" text-anchor="middle"><tspan x="423" dy="0" class="label-name">Sandwind Keep</tspan><tspan x="423" dy="9.5" class="label-level">Lv.4</tspan></text>
+      <text class="city-label" data-idx="35" x="930" y="731" text-anchor="middle"><tspan x="930" dy="0" class="label-name">Frostwolf</tspan><tspan x="930" dy="9" class="label-name">Camp</tspan><tspan x="930" dy="9" class="label-level">Lv.3</tspan></text>
+      <text class="city-label" data-idx="36" x="1074" y="918.5" text-anchor="middle"><tspan x="1074" dy="0" class="label-name">Stagcall Vale</tspan><tspan x="1074" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="37" x="1082" y="175.5" text-anchor="middle"><tspan x="1082" dy="0" class="label-name">Anvil Town</tspan><tspan x="1082" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="38" x="1064" y="455" text-anchor="middle"><tspan x="1064" dy="0" class="label-name">Holyspring</tspan><tspan x="1064" dy="9" class="label-name">City</tspan><tspan x="1064" dy="9" class="label-level">Lv.3</tspan></text>
+      <text class="city-label" data-idx="39" x="1222" y="341.5" text-anchor="middle"><tspan x="1222" dy="0" class="label-name">Pinewood Grove</tspan><tspan x="1222" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="40" x="657" y="330.5" text-anchor="middle"><tspan x="657" dy="0" class="label-name">Dawnhold</tspan><tspan x="657" dy="9.5" class="label-level">Lv.4</tspan></text>
+      <text class="city-label" data-idx="41" x="1210" y="964.5" text-anchor="middle"><tspan x="1210" dy="0" class="label-name">Howling Vale</tspan><tspan x="1210" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="42" x="1123" y="373" text-anchor="middle"><tspan x="1123" dy="0" class="label-name">Windwhisper</tspan><tspan x="1123" dy="9" class="label-name">Market</tspan><tspan x="1123" dy="9" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="43" x="369" y="253.5" text-anchor="middle"><tspan x="369" dy="0" class="label-name">Fisher's Bay</tspan><tspan x="369" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="44" x="87" y="725" text-anchor="middle"><tspan x="87" dy="0" class="label-name">Sailshadow</tspan><tspan x="87" dy="9" class="label-name">Harbor</tspan><tspan x="87" dy="9" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="45" x="57" y="833.5" text-anchor="middle"><tspan x="57" dy="0" class="label-name">Eagles Peak</tspan><tspan x="57" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="46" x="176" y="260.5" text-anchor="middle"><tspan x="176" dy="0" class="label-name">Red Soil Wastes</tspan><tspan x="176" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="47" x="583" y="998.5" text-anchor="middle"><tspan x="583" dy="0" class="label-name">Narroway</tspan><tspan x="583" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="48" x="1087" y="827.5" text-anchor="middle"><tspan x="1087" dy="0" class="label-name">Mistveil Village</tspan><tspan x="1087" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="49" x="465" y="988.5" text-anchor="middle"><tspan x="465" dy="0" class="label-name">Coal Pit</tspan><tspan x="465" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="50" x="488" y="895.5" text-anchor="middle"><tspan x="488" dy="0" class="label-name">Irongate Town</tspan><tspan x="488" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="51" x="352" y="42.5" text-anchor="middle"><tspan x="352" dy="0" class="label-name">Windmill Town</tspan><tspan x="352" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="52" x="156" y="937.5" text-anchor="middle"><tspan x="156" dy="0" class="label-name">Echo Town</tspan><tspan x="156" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="53" x="932" y="241.5" text-anchor="middle"><tspan x="932" dy="0" class="label-name">Twinspire Town</tspan><tspan x="932" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="54" x="899" y="904.5" text-anchor="middle"><tspan x="899" dy="0" class="label-name">Beacon Point</tspan><tspan x="899" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="55" x="920" y="658.5" text-anchor="middle"><tspan x="920" dy="0" class="label-name">Mithril Hall</tspan><tspan x="920" dy="9.5" class="label-level">Lv.4</tspan></text>
+      <text class="city-label" data-idx="56" x="224" y="354.5" text-anchor="middle"><tspan x="224" dy="0" class="label-name">Goldgrain Town</tspan><tspan x="224" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="57" x="928" y="29" text-anchor="middle"><tspan x="928" dy="0" class="label-name">Bluestone</tspan><tspan x="928" dy="9" class="label-name">Slope</tspan><tspan x="928" dy="9" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="58" x="1215" y="483.5" text-anchor="middle"><tspan x="1215" dy="0" class="label-name">Springhead</tspan><tspan x="1215" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="59" x="763" y="265.5" text-anchor="middle"><tspan x="763" dy="0" class="label-name">Drywell Tower</tspan><tspan x="763" dy="9.5" class="label-level">Lv.3</tspan></text>
+      <text class="city-label" data-idx="60" x="58" y="55.5" text-anchor="middle"><tspan x="58" dy="0" class="label-name">Old Oak</tspan><tspan x="58" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="61" x="267" y="158.5" text-anchor="middle"><tspan x="267" dy="0" class="label-name">Whitestone Town</tspan><tspan x="267" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="62" x="1110" y="31.5" text-anchor="middle"><tspan x="1110" dy="0" class="label-name">Wheatsheaf</tspan><tspan x="1110" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="63" x="611" y="73.5" text-anchor="middle"><tspan x="611" dy="0" class="label-name">Plaster Wall</tspan><tspan x="611" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="64" x="325" y="837.5" text-anchor="middle"><tspan x="325" dy="0" class="label-name">Stardust Road</tspan><tspan x="325" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="65" x="520" y="323" text-anchor="middle"><tspan x="520" dy="0" class="label-name">Falcon's</tspan><tspan x="520" dy="9" class="label-name">Keep</tspan><tspan x="520" dy="9" class="label-level">Lv.3</tspan></text>
+      <text class="city-label" data-idx="66" x="293" y="580.5" text-anchor="middle"><tspan x="293" dy="0" class="label-name">Stormgate</tspan><tspan x="293" dy="9.5" class="label-level">Lv.3</tspan></text>
+      <text class="city-label" data-idx="67" x="1071" y="738" text-anchor="middle"><tspan x="1071" dy="0" class="label-name">Greatwood</tspan><tspan x="1071" dy="9" class="label-name">Town</tspan><tspan x="1071" dy="9" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="68" x="433" y="800" text-anchor="middle"><tspan x="433" dy="0" class="label-name">Cloudtop</tspan><tspan x="433" dy="9" class="label-name">Highlands</tspan><tspan x="433" dy="9" class="label-level">Lv.3</tspan></text>
+      <text class="city-label" data-idx="69" x="867" y="561.5" text-anchor="middle"><tspan x="867" dy="0" class="label-name">Temple of War</tspan><tspan x="867" dy="9.5" class="label-level">Lv.5</tspan></text>
+      <text class="city-label" data-idx="70" x="874" y="453.5" text-anchor="middle"><tspan x="874" dy="0" class="label-name">Everpeak</tspan><tspan x="874" dy="9.5" class="label-level">Lv.4</tspan></text>
+      <text class="city-label" data-idx="71" x="712" y="755.5" text-anchor="middle"><tspan x="712" dy="0" class="label-name">Sunspire City</tspan><tspan x="712" dy="9.5" class="label-level">Lv.4</tspan></text>
+      <text class="city-label" data-idx="72" x="525" y="794.5" text-anchor="middle"><tspan x="525" dy="0" class="label-name">Cliffside Citadel</tspan><tspan x="525" dy="9.5" class="label-level">Lv.3</tspan></text>
+      <text class="city-label" data-idx="73" x="374" y="153.5" text-anchor="middle"><tspan x="374" dy="0" class="label-name">Broken Bridgehead</tspan><tspan x="374" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="74" x="938" y="815.5" text-anchor="middle"><tspan x="938" dy="0" class="label-name">Rose Garden</tspan><tspan x="938" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="75" x="135" y="423.5" text-anchor="middle"><tspan x="135" dy="0" class="label-name">Crow's Beak</tspan><tspan x="135" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="76" x="208" y="824.5" text-anchor="middle"><tspan x="208" dy="0" class="label-name">Old Mill</tspan><tspan x="208" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="77" x="1196" y="869.5" text-anchor="middle"><tspan x="1196" dy="0" class="label-name">Pinecone Market</tspan><tspan x="1196" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="78" x="359" y="675.5" text-anchor="middle"><tspan x="359" dy="0" class="label-name">Rose Court</tspan><tspan x="359" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="79" x="1076" y="280.5" text-anchor="middle"><tspan x="1076" dy="0" class="label-name">Birchwood Grove</tspan><tspan x="1076" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="80" x="611" y="736.5" text-anchor="middle"><tspan x="611" dy="0" class="label-name">Emerald City</tspan><tspan x="611" dy="9.5" class="label-level">Lv.4</tspan></text>
+      <text class="city-label" data-idx="81" x="361" y="943.5" text-anchor="middle"><tspan x="361" dy="0" class="label-name">Dry Well</tspan><tspan x="361" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="82" x="1219" y="763.5" text-anchor="middle"><tspan x="1219" dy="0" class="label-name">Redbrick House</tspan><tspan x="1219" dy="9.5" class="label-level">Lv.1</tspan></text>
+      <text class="city-label" data-idx="83" x="299" y="430.5" text-anchor="middle"><tspan x="299" dy="0" class="label-name">Gale Heights</tspan><tspan x="299" dy="9.5" class="label-level">Lv.3</tspan></text>
+      <text class="city-label" data-idx="84" x="802" y="821.5" text-anchor="middle"><tspan x="802" dy="0" class="label-name">Blackwater Ferry</tspan><tspan x="802" dy="9.5" class="label-level">Lv.2</tspan></text>
+      <text class="city-label" data-idx="85" x="725" y="648.5" text-anchor="middle"><tspan x="725" dy="0" class="label-name">Nightfall Fortress</tspan><tspan x="725" dy="9.5" class="label-level">Lv.6</tspan></text>
+    </svg>
+    <div class="tooltip" id="tooltip"></div>
+    <button id="resetViewBtn" class="reset-view-btn" title="Reset zoom">⤾ Reset View</button>
+    <div class="status-popup" id="statusPopup">
+      <div class="popup-head">
+        <div>
+          <div id="popName">City</div>
+          <div id="popMeta"></div>
+        </div>
+        <button id="popClose">&times;</button>
+      </div>
+      <button class="status-btn" data-status="owned">🟢 Mark Owned by Us</button>
+      <button class="status-btn" data-status="target">🟡 Mark as Target</button>
+      <button class="status-btn" data-status="allyOwned">🔵 Mark Ally-Owned</button>
+      <button class="status-btn" data-status="allyTarget">🔷 Mark Ally-Planned</button>
+      <button class="status-btn" data-status="enemy">🚩 Mark Enemy-Owned</button>
+      <div id="allianceInputWrap">
+        <div class="field-label">Alliance Label (up to 4 letters)</div>
+        <input type="text" id="allianceNameInput" placeholder="ABCD" maxlength="4">
+        <button id="allianceConfirm">Set Flag</button>
+      </div>
+      <button class="status-btn clear-btn" data-status="none">Clear Status</button>
+    </div>
+  </div>
+
+  <aside id="legendDrawer" class="legend-drawer">
+    <div class="drawer-header">
+      <h3>Legend</h3>
+      <button id="drawerCloseBtn" class="drawer-close-btn">&times;</button>
+    </div>
+    <div class="panel legend-panel">
+      <div class="legend-item"><span class="swatch" style="background:var(--lvl1)"></span>Level 1 <span class="count">(36)</span></div>
+      <div class="legend-item"><span class="swatch" style="background:var(--lvl2)"></span>Level 2 <span class="count">(24)</span></div>
+      <div class="legend-item"><span class="swatch" style="background:var(--lvl3)"></span>Level 3 <span class="count">(12)</span></div>
+      <div class="legend-item"><span class="swatch" style="background:var(--lvl4)"></span>Level 4 <span class="count">(7)</span></div>
+      <div class="legend-item"><span class="swatch" style="background:var(--lvl5)"></span>Level 5 <span class="count">(4)</span></div>
+      <div class="legend-item"><span class="swatch" style="background:var(--lvl6)"></span>Level 6 <span class="count">(3)</span></div>
+      <div class="legend-item"><span class="swatch" style="background:var(--royal); border-color:#d8ad5d;"></span>Royal City</div>
+      <div class="legend-divider"></div>
+      <div class="legend-item"><span class="swatch" style="background:var(--owned)"></span>Owned <span class="count" id="legendOwnedCount">(0)</span></div>
+      <div class="legend-item"><svg width="14" height="14" style="vertical-align:middle; border-radius:3px; border:1px solid rgba(0,0,0,.3);"><rect width="14" height="14" fill="url(#hatchTarget)"></rect></svg>Planned Target <span class="count" id="legendTargetCount">(0)</span></div>
+      <div class="legend-item"><span class="swatch" style="background:var(--allyOwned)"></span>Ally-Owned <span class="count" id="legendAllyOwnedCount">(0)</span></div>
+      <div class="legend-item"><svg width="14" height="14" style="vertical-align:middle; border-radius:3px; border:1px solid rgba(0,0,0,.3);"><rect width="14" height="14" fill="url(#hatchAllyTarget)"></rect></svg>Ally-Planned <span class="count" id="legendAllyTargetCount">(0)</span></div>
+      <div class="legend-divider"></div>
+      <div class="export-import-row">
+        <button class="action-btn half" id="exportBtn">⬇ Export</button>
+        <button class="action-btn half" id="importBtn">⬆ Import</button>
+        <button class="info-btn" id="exportInfoBtn" aria-label="What do these buttons do?">ⓘ</button>
+      </div>
+      <div class="info-box" id="exportInfoBox" style="display:none;">
+        <b>Export</b> saves everything currently marked on the map — Owned, Planned Target, Ally-Owned/Planned, and Enemy flags — to a JSON file you can keep as a backup or send to someone else.<br><br>
+        <b>Import</b> loads a previously exported file back in. This replaces whatever is currently marked on this device with what's in the file.
+      </div>
+      <input type="file" id="importFile" accept="application/json" style="display:none">
+      <div id="importMsg" class="import-msg"></div>
+      <div class="legend-divider"></div>
+      <div class="drawer-section-label">Navigate</div>
+      <a class="action-btn nav-link" href="royal-city-alliance-map.html">🏠 Home</a>
+      <div class="legend-divider"></div>
+      <div class="drawer-section-label">Guides</div>
+      <a class="action-btn nav-link" href="hero-guide.html">⚔️ Hero Guide</a>
+      <a class="action-btn nav-link" href="sanctuary-upgrades.html">🏰 Sanctuary Guide</a>
+      <div class="legend-divider"></div>
+      <button class="action-btn" id="checkUpdateBtn">⟳ Check for Updates</button>
+      <div id="updateMsg" class="import-msg"></div>
+    </div>
+  </aside>
+</div>
+
+<div class="alliance-summary-wrap" id="allianceSummaryWrap" style="display:none;">
+  <h2 class="summary-title">Alliance Summary</h2>
+  <div class="alliance-summary-scroll">
+    <table class="alliance-summary-table" id="allianceSummaryTable">
+      <thead>
+        <tr>
+          <th>Alliance</th>
+          <th>Alliance Legend</th>
+          <th>Level 1</th>
+          <th>Level 2</th>
+          <th>Level 3</th>
+          <th>Level 4</th>
+          <th>Level 5</th>
+          <th>Level 6</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="allianceSummaryBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'royalcity_alliance_status_v1';
+let state = {};
+try {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) state = JSON.parse(saved);
+} catch(e) { console.warn('localStorage unavailable, state will not persist', e); }
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+const tooltip = document.getElementById('tooltip');
+const container = document.querySelector('.map-container');
+const popup = document.getElementById('statusPopup');
+const popName = document.getElementById('popName');
+const popMeta = document.getElementById('popMeta');
+const popClose = document.getElementById('popClose');
+const allianceWrap = document.getElementById('allianceInputWrap');
+const allianceInput = document.getElementById('allianceNameInput');
+let currentIdx = null;
+let suppressNextClick = false;
+
+const NUM_ALLIANCE_STYLES = 12;
+function allianceStyleIndex(label) {
+  let h = 0;
+  for (let i = 0; i < label.length; i++) h = (h * 31 + label.charCodeAt(i)) >>> 0;
+  return h % NUM_ALLIANCE_STYLES;
+}
+function getLabel(st) {
+  if (!st) return '';
+  if (st.allianceLabel) return st.allianceLabel;
+  if (st.allianceName) return st.allianceName.slice(0, 4).toUpperCase();
+  return 'XXX';
+}
+
+// build idx -> level lookup once
+const provinceLevelByIdx = {};
+document.querySelectorAll('.province').forEach(el => {
+  provinceLevelByIdx[el.dataset.idx] = el.dataset.level;
+});
+
+function applyVisual(idx) {
+  const st = state[idx];
+  const overlay = document.querySelector(`.status-overlay[data-idx="${idx}"]`);
+  const flag = document.querySelector(`.flag-marker[data-idx="${idx}"]`);
+  const banner = flag.querySelector('.flag-banner');
+  const flagText = flag.querySelector('.flag-text');
+  overlay.setAttribute('class', 'status-overlay');
+  banner.setAttribute('class', 'flag-banner');
+  flag.style.display = 'none';
+  if (st && st.status === 'owned') {
+    overlay.classList.add('st-owned');
+    banner.classList.add('fc-owned');
+    flagText.textContent = 'APX';
+    flag.style.display = '';
+  } else if (st && st.status === 'target') {
+    overlay.classList.add('st-target');
+  } else if (st && st.status === 'allyOwned') {
+    overlay.classList.add('st-allyOwned');
+    banner.classList.add('fc-ally');
+    flagText.textContent = getLabel(st);
+    flag.style.display = '';
+  } else if (st && st.status === 'allyTarget') {
+    overlay.classList.add('st-allyTarget');
+  } else if (st && st.status === 'enemy') {
+    const label = getLabel(st);
+    const si = allianceStyleIndex(label);
+    overlay.classList.add('st-enemy-' + si);
+    banner.classList.add('fc-' + si);
+    flagText.textContent = label;
+    flag.style.display = '';
+  }
+}
+
+function closePopup() {
+  popup.classList.remove('active');
+  document.querySelectorAll('.province.selected').forEach(p => p.classList.remove('selected'));
+  currentIdx = null;
+}
+
+function openPopupFor(el, clientX, clientY) {
+  const idx = el.dataset.idx;
+  document.querySelectorAll('.province.selected').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  currentIdx = idx;
+
+  popName.textContent = el.dataset.name;
+  popMeta.textContent = `Level ${el.dataset.level} · ${el.dataset.out}`;
+  allianceWrap.style.display = 'none';
+  document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active-owned','active-target','active-allyOwned','active-allyTarget','active-enemy'));
+  const st = state[idx];
+  if (st) {
+    const btn = document.querySelector(`.status-btn[data-status="${st.status}"]`);
+    if (btn) btn.classList.add('active-' + st.status);
+    if (st.status === 'enemy' || st.status === 'allyOwned') {
+      allianceWrap.style.display = 'block';
+      allianceInput.value = getLabel(st);
+    }
+  }
+
+  popup.classList.add('active');
+  const popW = popup.offsetWidth || 210, popH = popup.offsetHeight || 260;
+  const margin = 8;
+  let left = clientX + 10;
+  let top = clientY + 10;
+  // Flip to the other side of the tap point if the default placement would run off that edge
+  if (left + popW > window.innerWidth - margin) left = clientX - popW - 10;
+  if (top + popH > window.innerHeight - margin) top = clientY - popH - 10;
+  // Final safety clamp so the popup is always fully on-screen, no matter where the tap was
+  left = Math.min(Math.max(left, margin), Math.max(margin, window.innerWidth - popW - margin));
+  top = Math.min(Math.max(top, margin), Math.max(margin, window.innerHeight - popH - margin));
+  popup.style.left = left + 'px';
+  popup.style.top = top + 'px';
+}
+
+document.querySelectorAll('.province').forEach((el) => {
+  const idx = el.dataset.idx;
+  applyVisual(idx);
+
+  el.addEventListener('click', (e) => {
+    if (suppressNextClick) { suppressNextClick = false; return; }
+    openPopupFor(el, e.clientX, e.clientY);
+  });
+
+  el.addEventListener('mousemove', (e) => {
+    const st = state[idx];
+    let statusHtml = '';
+    if (st && st.status === 'owned') statusHtml = '<div class="tt-status" style="color:#2ecc71;">Owned</div>';
+    else if (st && st.status === 'target') statusHtml = '<div class="tt-status" style="color:#1abc9c;">Planned Target</div>';
+    else if (st && st.status === 'allyOwned') statusHtml = `<div class="tt-status" style="color:#3498db;">Ally-Owned: ${getLabel(st)}</div>`;
+    else if (st && st.status === 'allyTarget') statusHtml = '<div class="tt-status" style="color:#1f618d;">Ally-Planned</div>';
+    else if (st && st.status === 'enemy') statusHtml = `<div class="tt-status" style="color:#c0392b;">Enemy: ${getLabel(st)}</div>`;
+    tooltip.innerHTML = `<div class="tt-name">${el.dataset.name}</div><div class="tt-lvl">Level ${el.dataset.level} &middot; ${el.dataset.out}</div>${statusHtml}`;
+
+    tooltip.style.display = 'block';
+    const ttW = tooltip.offsetWidth || 160, ttH = tooltip.offsetHeight || 50;
+    const margin = 8;
+    let left = e.clientX + 14;
+    let top = e.clientY + 14;
+    if (left + ttW > window.innerWidth - margin) left = e.clientX - ttW - 14;
+    if (top + ttH > window.innerHeight - margin) top = e.clientY - ttH - 14;
+    left = Math.min(Math.max(left, margin), Math.max(margin, window.innerWidth - ttW - margin));
+    top = Math.min(Math.max(top, margin), Math.max(margin, window.innerHeight - ttH - margin));
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+  });
+  el.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+});
+
+popClose.addEventListener('click', closePopup);
+document.addEventListener('click', (e) => {
+  if (popup.classList.contains('active') && !popup.contains(e.target) && !e.target.classList.contains('province')) {
+    closePopup();
+  }
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePopup(); });
+
+document.querySelectorAll('.status-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (currentIdx === null) return;
+    const status = btn.dataset.status;
+    document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active-owned','active-target','active-allyOwned','active-allyTarget','active-enemy'));
+    if (status === 'none') {
+      delete state[currentIdx];
+      allianceWrap.style.display = 'none';
+      applyVisual(currentIdx);
+      saveState();
+      renderAllianceSummary();
+      closePopup();
+    } else if (status === 'enemy' || status === 'allyOwned') {
+      allianceWrap.style.display = 'block';
+      const existing = state[currentIdx] || {};
+      state[currentIdx] = { status: status, allianceLabel: getLabel(existing) !== 'XXX' ? getLabel(existing) : '' };
+      btn.classList.add('active-' + status);
+      allianceInput.value = state[currentIdx].allianceLabel;
+      allianceInput.focus();
+      applyVisual(currentIdx);
+      saveState();
+      renderAllianceSummary();
+    } else {
+      state[currentIdx] = { status: status };
+      allianceWrap.style.display = 'none';
+      btn.classList.add('active-' + status);
+      applyVisual(currentIdx);
+      saveState();
+      renderAllianceSummary();
+      closePopup();
+    }
+  });
+});
+
+allianceInput.addEventListener('input', () => {
+  allianceInput.value = allianceInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+});
+
+document.getElementById('allianceConfirm').addEventListener('click', () => {
+  if (currentIdx === null) return;
+  const label = allianceInput.value.trim() || 'XXX';
+  const pendingStatus = (state[currentIdx] && state[currentIdx].status) || 'enemy';
+  state[currentIdx] = { status: pendingStatus, allianceLabel: label };
+  applyVisual(currentIdx);
+  saveState();
+  renderAllianceSummary();
+  closePopup();
+});
+allianceInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('allianceConfirm').click();
+});
+
+const importMsg = document.getElementById('importMsg');
+
+const exportInfoBtn = document.getElementById('exportInfoBtn');
+const exportInfoBox = document.getElementById('exportInfoBox');
+exportInfoBtn.addEventListener('click', () => {
+  const showing = exportInfoBox.style.display !== 'none';
+  exportInfoBox.style.display = showing ? 'none' : 'block';
+  exportInfoBtn.classList.toggle('active', !showing);
+});
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const payload = {
+    map: 'Realm of Royal City',
+    exportedAt: new Date().toISOString(),
+    territories: state
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `royal-city-territories-${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  importMsg.textContent = 'Exported ✓';
+  importMsg.style.color = '#2ecc71';
+  setTimeout(() => { importMsg.textContent = ''; }, 3000);
+});
+
+document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('importFile').click();
+});
+
+document.getElementById('importFile').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      const parsed = JSON.parse(evt.target.result);
+      const incoming = parsed.territories || parsed; // support raw state or wrapped payload
+      state = incoming;
+      document.querySelectorAll('.province').forEach(el => applyVisual(el.dataset.idx));
+      saveState();
+      renderAllianceSummary();
+      importMsg.textContent = 'Imported ✓ — territories updated';
+      importMsg.style.color = '#2ecc71';
+    } catch (err) {
+      importMsg.textContent = 'Import failed — not a valid file';
+      importMsg.style.color = '#c0392b';
+    }
+    setTimeout(() => { importMsg.textContent = ''; }, 4000);
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+const ALLIANCE_STYLE_COLORS = ['#c0392b','#e67e22','#d6336c','#e74c3c','#d35400','#ad1457','#a93226','#f39c12','#c2185b','#c0392b','#e67e22','#d6336c'];
+const summaryWrap = document.getElementById('allianceSummaryWrap');
+const summaryBody = document.getElementById('allianceSummaryBody');
+
+function updateStatusLegendCounts() {
+  let owned = 0, target = 0, allyOwned = 0, allyTarget = 0;
+  Object.values(state).forEach((st) => {
+    if (!st) return;
+    if (st.status === 'owned') owned++;
+    else if (st.status === 'target') target++;
+    else if (st.status === 'allyOwned') allyOwned++;
+    else if (st.status === 'allyTarget') allyTarget++;
+  });
+  document.getElementById('legendOwnedCount').textContent = `(${owned})`;
+  document.getElementById('legendTargetCount').textContent = `(${target})`;
+  document.getElementById('legendAllyOwnedCount').textContent = `(${allyOwned})`;
+  document.getElementById('legendAllyTargetCount').textContent = `(${allyTarget})`;
+}
+
+function renderAllianceSummary() {
+  updateStatusLegendCounts();
+  const groups = {};
+  Object.entries(state).forEach(([idx, st]) => {
+    if (!st) return;
+    let kind, label;
+    if (st.status === 'owned') { kind = 'owned'; label = 'APX'; }
+    else if (st.status === 'allyOwned') { kind = 'ally'; label = getLabel(st); }
+    else if (st.status === 'enemy') { kind = 'enemy'; label = getLabel(st); }
+    else return; // target / allyTarget / none are not ownership — excluded from the chart
+
+    const key = kind + ':' + label;
+    const level = provinceLevelByIdx[idx];
+    if (!groups[key]) groups[key] = { kind, label, counts: {1:0,2:0,3:0,4:0,5:0,6:0} };
+    groups[key].counts[level] = (groups[key].counts[level] || 0) + 1;
+  });
+
+  const kindOrder = { owned: 0, ally: 1, enemy: 2 };
+  const rows = Object.values(groups).sort((a, b) => {
+    if (kindOrder[a.kind] !== kindOrder[b.kind]) return kindOrder[a.kind] - kindOrder[b.kind];
+    return a.label.localeCompare(b.label);
+  });
+
+  if (rows.length === 0) {
+    summaryWrap.style.display = 'none';
+    summaryBody.innerHTML = '';
+    return;
+  }
+  summaryWrap.style.display = 'block';
+
+  summaryBody.innerHTML = rows.map(({ kind, label, counts }) => {
+    const total = [1,2,3,4,5,6].reduce((sum, lv) => sum + (counts[lv] || 0), 0);
+    const levelCells = [1,2,3,4,5,6].map(lv => {
+      const c = counts[lv] || 0;
+      return `<td class="${c === 0 ? 'as-zero' : ''}">${c}</td>`;
+    }).join('');
+
+    let swatch, note = '';
+    if (kind === 'owned') {
+      swatch = `<svg width="30" height="16"><rect width="30" height="16" fill="#2ecc71" stroke="#0d3b22" stroke-width="1.5" rx="2"></rect></svg>`;
+    } else if (kind === 'ally') {
+      swatch = `<svg width="30" height="16"><rect width="30" height="16" fill="#3498db" stroke="#0d2b3b" stroke-width="1.5" rx="2"></rect></svg>`;
+      note = '<div class="as-note">(Allied)</div>';
+    } else {
+      const si = allianceStyleIndex(label);
+      const color = ALLIANCE_STYLE_COLORS[si];
+      swatch = `<svg width="30" height="16"><rect width="30" height="16" fill="url(#hatchEnemy${si})" stroke="${color}" stroke-width="1.5" rx="2"></rect></svg>`;
+    }
+    return `<tr><td>${label}</td><td>${swatch}${note}</td>${levelCells}<td class="as-total">${total}</td></tr>`;
+  }).join('');
+}
+
+renderAllianceSummary();
+
+// ---- Pinch-zoom & pan (touch) + wheel-zoom (desktop) for the map ----
+const mapSvg = document.getElementById('mapSvg');
+const resetViewBtn = document.getElementById('resetViewBtn');
+
+// ---- Legend drawer toggle ----
+const legendDrawer = document.getElementById('legendDrawer');
+const hamburgerBtn = document.getElementById('hamburgerBtn');
+const drawerCloseBtn = document.getElementById('drawerCloseBtn');
+
+function updateHamburgerVisibility() {
+  hamburgerBtn.classList.toggle('hidden', !legendDrawer.classList.contains('closed'));
+}
+function toggleDrawer() {
+  legendDrawer.classList.toggle('closed');
+  updateHamburgerVisibility();
+}
+function closeDrawer() {
+  legendDrawer.classList.add('closed');
+  updateHamburgerVisibility();
+}
+hamburgerBtn.addEventListener('click', toggleDrawer);
+drawerCloseBtn.addEventListener('click', closeDrawer);
+updateHamburgerVisibility();
+
+let zoomScale = 1, panX = 0, panY = 0;
+const MIN_SCALE = 1, MAX_SCALE = 4;
+
+function applyMapTransform() {
+  mapSvg.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+  resetViewBtn.classList.toggle('visible', zoomScale > 1.01);
+  // At default zoom, leave single-finger touches free for normal page scroll (so the
+  // chart below the map stays reachable). Once zoomed in, claim single-finger drags
+  // for panning around the map instead — tap Reset View to get page-scroll back.
+  mapSvg.style.touchAction = zoomScale > 1.01 ? 'none' : 'pan-y';
+}
+
+function clampPan() {
+  const rect = container.getBoundingClientRect();
+  const minX = rect.width - rect.width * zoomScale;
+  const minY = rect.height - rect.height * zoomScale;
+  panX = Math.min(0, Math.max(minX, panX));
+  panY = Math.min(0, Math.max(minY, panY));
+}
+
+resetViewBtn.addEventListener('click', () => {
+  zoomScale = 1; panX = 0; panY = 0;
+  applyMapTransform();
+});
+
+// Rotating the phone changes the viewport dimensions the current pan/zoom was computed
+// against, which can leave the map looking shifted or oddly cropped. Snap back to a clean,
+// correctly-fitted view whenever the viewport itself changes size.
+window.addEventListener('orientationchange', () => {
+  zoomScale = 1; panX = 0; panY = 0;
+  applyMapTransform();
+});
+window.addEventListener('resize', () => {
+  zoomScale = 1; panX = 0; panY = 0;
+  applyMapTransform();
+});
+
+function touchDistance(t0, t1) {
+  return Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+}
+function touchMidpoint(t0, t1, rect) {
+  return { x: (t0.clientX + t1.clientX) / 2 - rect.left, y: (t0.clientY + t1.clientY) / 2 - rect.top };
+}
+
+// Two fingers always handles pinch-zoom + pan together. A single finger pans the map
+// too, but only once you've zoomed in — at default zoom, single-finger touches are left
+// free (via CSS touch-action:pan-y) for normal page scrolling, so the chart below the map
+// stays reachable. Tap Reset View any time to snap back to scale 1 and get plain
+// page-scrolling back.
+let gesture = null;
+let gestureMoved = false;
+
+container.addEventListener('touchstart', (e) => {
+  gestureMoved = false;
+  if (e.touches.length === 2) {
+    const rect = container.getBoundingClientRect();
+    const mid = touchMidpoint(e.touches[0], e.touches[1], rect);
+    gesture = {
+      mode: 'pinch',
+      startDist: touchDistance(e.touches[0], e.touches[1]),
+      startScale: zoomScale,
+      // the content-space point that's currently under the fingers — stays fixed under
+      // them as the gesture proceeds, whether that's from zooming, dragging, or both at once
+      contentX: (mid.x - panX) / zoomScale,
+      contentY: (mid.y - panY) / zoomScale
+    };
+  } else if (e.touches.length === 1 && zoomScale > 1.01) {
+    gesture = {
+      mode: 'pan1',
+      startX: e.touches[0].clientX,
+      startY: e.touches[0].clientY,
+      startPanX: panX,
+      startPanY: panY
+    };
+  } else {
+    gesture = null;
+  }
+}, { passive: true });
+
+container.addEventListener('touchmove', (e) => {
+  if (!gesture) return;
+  if (gesture.mode === 'pinch' && e.touches.length === 2) {
+    e.preventDefault();
+    const rect = container.getBoundingClientRect();
+    const dist = touchDistance(e.touches[0], e.touches[1]);
+    const mid = touchMidpoint(e.touches[0], e.touches[1], rect);
+    let newScale = gesture.startScale * (dist / gesture.startDist);
+    newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
+    panX = mid.x - gesture.contentX * newScale;
+    panY = mid.y - gesture.contentY * newScale;
+    zoomScale = newScale;
+    clampPan();
+    applyMapTransform();
+    gestureMoved = true;
+  } else if (gesture.mode === 'pan1' && e.touches.length === 1) {
+    e.preventDefault();
+    const dx = e.touches[0].clientX - gesture.startX;
+    const dy = e.touches[0].clientY - gesture.startY;
+    if (Math.hypot(dx, dy) > 6) gestureMoved = true;
+    panX = gesture.startPanX + dx;
+    panY = gesture.startPanY + dy;
+    clampPan();
+    applyMapTransform();
+  }
+}, { passive: false });
+
+container.addEventListener('touchend', (e) => {
+  if (gestureMoved && e.touches.length === 0) suppressNextClick = true;
+  if (e.touches.length < 1) gesture = null;
+  if (e.touches.length === 0) gestureMoved = false;
+}, { passive: true });
+
+container.addEventListener('wheel', (e) => {
+  // Plain scroll = let the page scroll normally (so the chart below stays reachable).
+  // Ctrl/Cmd+scroll (and trackpad pinch, which browsers report the same way) = zoom the map.
+  if (!e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  const rect = container.getBoundingClientRect();
+  const cursorX = e.clientX - rect.left;
+  const cursorY = e.clientY - rect.top;
+  const delta = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+  const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, zoomScale * delta));
+  panX = cursorX - (cursorX - panX) * (newScale / zoomScale);
+  panY = cursorY - (cursorY - panY) * (newScale / zoomScale);
+  zoomScale = newScale;
+  clampPan();
+  applyMapTransform();
+}, { passive: false });
+
+let swRegistration = null;
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then((reg) => { swRegistration = reg; })
+      .catch((err) => {
+        console.warn('Service worker registration failed (expected if opened via file://):', err);
+      });
+  });
+
+  // Once a new service worker takes over, the page it's controlling is stale —
+  // reload so everything (HTML, cached assets) is actually the new version.
+  let reloadedOnce = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloadedOnce) return;
+    reloadedOnce = true;
+    window.location.reload();
+  });
+}
+
+const checkUpdateBtn = document.getElementById('checkUpdateBtn');
+const updateMsg = document.getElementById('updateMsg');
+
+checkUpdateBtn.addEventListener('click', async () => {
+  if (!('serviceWorker' in navigator)) {
+    updateMsg.textContent = 'Not available in this browser';
+    updateMsg.style.color = '#c0392b';
+    return;
+  }
+  updateMsg.textContent = 'Checking…';
+  updateMsg.style.color = '#9c9488';
+  try {
+    const reg = swRegistration || await navigator.serviceWorker.getRegistration();
+    if (!reg) {
+      updateMsg.textContent = 'No service worker registered yet';
+      updateMsg.style.color = '#c0392b';
+      return;
+    }
+    await reg.update();
+    // Give the browser a moment to finish installing anything it found
+    setTimeout(() => {
+      if (reg.waiting) {
+        // A new version installed and is waiting to take over — activate it now.
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        updateMsg.textContent = 'Update found — reloading…';
+        updateMsg.style.color = '#2ecc71';
+      } else {
+        updateMsg.textContent = 'Already up to date ✓';
+        updateMsg.style.color = '#2ecc71';
+        setTimeout(() => { updateMsg.textContent = ''; }, 3000);
+      }
+    }, 1200);
+  } catch (err) {
+    updateMsg.textContent = 'Check failed — try again later';
+    updateMsg.style.color = '#c0392b';
+  }
+});
+</script>
+
+</body>
+</html>

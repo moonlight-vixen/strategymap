@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sanctuary Upgrade Guide — Royal City</title>
+<title>Sanctuary Guide — Royal City</title>
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#132420">
@@ -29,20 +29,23 @@
 
   .topbar{
     position:sticky; top:0; z-index:50;
-    display:flex; align-items:center; gap:14px;
-    padding:calc(12px + env(safe-area-inset-top,0px)) 18px 12px;
+    padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
     background:#101613; border-bottom:1px solid #2a3f37;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
   }
-  .back-link{
-    display:flex; align-items:center; gap:6px;
-    background:rgba(15,18,16,.88); border:1px solid #6b5f45; color:#e8c77a;
-    font-size:13px; padding:8px 14px; border-radius:8px; cursor:pointer;
-    flex-shrink:0;
+  .nav-strip{
+    display:flex; gap:8px; width:max-content; margin:0 auto;
   }
-  .back-link:hover{ background:rgba(30,42,36,.95); }
-  .topbar h1{
-    font-size:17px; font-weight:400; letter-spacing:.5px; color:#e8c77a; margin:0;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  .nav-pill{
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+    background:rgba(15,18,16,.88); border:1px solid #6b5f45; color:#cbc3b5;
+    font-size:12.5px; padding:8px 13px; border-radius:20px; transition:all .15s ease;
+  }
+  .nav-pill:hover{ background:rgba(30,42,36,.95); color:#fff; }
+  .nav-pill.active{ background:#e8c77a; border-color:#e8c77a; color:#2a2416; font-weight:700; }
+  .page-title{
+    font-size:19px; font-weight:400; letter-spacing:.5px; color:#e8c77a; margin:0 0 4px;
   }
 
   .page-wrap{
@@ -148,11 +151,11 @@
 <body>
 
 <div class="topbar">
-  <a href="royal-city-alliance-map.html" class="back-link">&larr; Map</a>
-  <h1>Sanctuary Upgrade Guide</h1>
+  <div class="nav-strip"><a href="royal-city-alliance-map.html" class="nav-pill">🏠 Home</a><a href="territory-map.html" class="nav-pill">🗺️ Map</a><a href="hero-guide.html" class="nav-pill">⚔️ Heroes</a><a href="sanctuary-upgrades.html" class="nav-pill active">🏰 Sanctuary</a></div>
 </div>
 
 <div class="page-wrap">
+  <h1 class="page-title">Sanctuary Guide</h1>
   <p class="page-sub">Grain / Lumber / Herb costs, star requirements, prerequisite buildings, diamond rush-cost, and build times for Sanctuary levels 1–30. Check off prerequisite buildings as you complete them — checkmarks are saved on this device.</p>
 
   <div class="controls">
