@@ -28,7 +28,7 @@
     --enemy:#c0392b;
   }
   *{box-sizing:border-box;}
-  html, body{ height:100%; }
+  html, body{ min-height:100%; }
   html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
   body{
     margin:0;
@@ -36,7 +36,7 @@
     font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
     color:var(--ink);
     padding:0;
-    overflow:hidden;
+    overflow-x:hidden;
     display:flex;
     flex-direction:column;
   }
@@ -61,8 +61,6 @@
   .nav-pill.active{ background:#e8c77a; border-color:#e8c77a; color:#2a2416; font-weight:700; }
   .wrap{
     width:100vw;
-    flex:1;
-    min-height:0;
     margin:0;
     display:flex;
     flex-direction:column;
@@ -845,6 +843,21 @@
 </div>
 
 <script>
+// Guarantee the map fills at least one full screen below the topbar, no matter how tall
+// the topbar ends up (it varies with the device's safe-area insets) and regardless of
+// how much room the Alliance Summary chart below needs — the page grows/scrolls instead
+// of the map ever getting compressed to make room.
+function sizeMapArea() {
+  const topbar = document.querySelector('.topbar');
+  const wrap = document.querySelector('.wrap');
+  if (!topbar || !wrap) return;
+  const available = window.innerHeight - topbar.getBoundingClientRect().height;
+  wrap.style.minHeight = Math.max(200, available) + 'px';
+}
+sizeMapArea();
+window.addEventListener('resize', sizeMapArea);
+window.addEventListener('orientationchange', () => setTimeout(sizeMapArea, 50));
+
 const STORAGE_KEY = 'royalcity_alliance_status_v1';
 let state = {};
 try {
