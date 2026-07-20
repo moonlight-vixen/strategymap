@@ -220,12 +220,29 @@
     box-sizing:border-box;
   }
   .action-btn:hover{ background:#6b6355; color:#fff; }
-  .action-btn.nav-link{ border-color:#7a6635; color:#e8c77a; }
+  .action-btn.nav-link{ border-color:#7a6635; color:#e8c77a; text-decoration:none; }
   .action-btn.nav-link:hover{ background:#4a3d1f; color:#fff; }
   .drawer-section-label{
     font-size:10.5px; color:#6b6355; text-transform:uppercase; letter-spacing:.8px;
     margin:0 0 6px 2px; font-weight:700;
   }
+  .export-import-row{
+    display:flex; align-items:stretch; gap:6px; margin-bottom:6px;
+  }
+  .action-btn.half{ flex:1; margin-bottom:0; }
+  .info-btn{
+    flex-shrink:0; width:32px; border-radius:50%; border:1px solid #6b6355;
+    background:transparent; color:#9c9488; cursor:pointer; font-size:14px;
+    display:flex; align-items:center; justify-content:center; transition:all .15s ease;
+  }
+  .info-btn:hover{ background:#6b6355; color:#fff; }
+  .info-btn.active{ background:#e8c77a; border-color:#e8c77a; color:#2a2416; }
+  .info-box{
+    background:#171f1b; border:1px solid #2a3f37; border-radius:6px;
+    padding:10px 12px; font-size:11.5px; color:#cbc3b5; line-height:1.6;
+    margin-bottom:10px;
+  }
+  .info-box b{ color:#e8c77a; }
   .import-msg{ font-size:11px; color:#9c9488; margin-top:4px; min-height:14px; }
   .swatch{ width:14px; height:14px; border-radius:3px; flex-shrink:0; border:1px solid rgba(0,0,0,.3); }
   .status-popup{
@@ -763,13 +780,20 @@
       <div class="legend-item"><span class="swatch" style="background:var(--allyOwned)"></span>Ally-Owned <span class="count" id="legendAllyOwnedCount">(0)</span></div>
       <div class="legend-item"><svg width="14" height="14" style="vertical-align:middle; border-radius:3px; border:1px solid rgba(0,0,0,.3);"><rect width="14" height="14" fill="url(#hatchAllyTarget)"></rect></svg>Ally-Planned <span class="count" id="legendAllyTargetCount">(0)</span></div>
       <div class="legend-divider"></div>
-      <div class="drawer-section-label">Guides</div>
-      <a class="action-btn nav-link" href="sanctuary-upgrades.html">📖 Sanctuary Upgrade Guide</a>
-      <div class="legend-divider"></div>
-      <button class="action-btn" id="exportBtn">⬇ Export Territories</button>
-      <button class="action-btn" id="importBtn">⬆ Import Territories</button>
+      <div class="export-import-row">
+        <button class="action-btn half" id="exportBtn">⬇ Export</button>
+        <button class="action-btn half" id="importBtn">⬆ Import</button>
+        <button class="info-btn" id="exportInfoBtn" aria-label="What do these buttons do?">ⓘ</button>
+      </div>
+      <div class="info-box" id="exportInfoBox" style="display:none;">
+        <b>Export</b> saves everything currently marked on the map — Owned, Planned Target, Ally-Owned/Planned, and Enemy flags — to a JSON file you can keep as a backup or send to someone else.<br><br>
+        <b>Import</b> loads a previously exported file back in. This replaces whatever is currently marked on this device with what's in the file.
+      </div>
       <input type="file" id="importFile" accept="application/json" style="display:none">
       <div id="importMsg" class="import-msg"></div>
+      <div class="legend-divider"></div>
+      <div class="drawer-section-label">Guides</div>
+      <a class="action-btn nav-link" href="sanctuary-upgrades.html">Sanctuary Upgrade Guide</a>
       <div class="legend-divider"></div>
       <button class="action-btn" id="checkUpdateBtn">⟳ Check for Updates</button>
       <div id="updateMsg" class="import-msg"></div>
@@ -1010,6 +1034,14 @@ allianceInput.addEventListener('keydown', (e) => {
 });
 
 const importMsg = document.getElementById('importMsg');
+
+const exportInfoBtn = document.getElementById('exportInfoBtn');
+const exportInfoBox = document.getElementById('exportInfoBox');
+exportInfoBtn.addEventListener('click', () => {
+  const showing = exportInfoBox.style.display !== 'none';
+  exportInfoBox.style.display = showing ? 'none' : 'block';
+  exportInfoBtn.classList.toggle('active', !showing);
+});
 
 document.getElementById('exportBtn').addEventListener('click', () => {
   const payload = {
