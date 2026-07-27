@@ -1,4 +1,4 @@
-const CACHE_NAME = 'royal-city-map-v35';
+const CACHE_NAME = 'royal-city-map-v38';
 const ASSETS_TO_CACHE = [
   './royal-city-alliance-map.html',
   './territory-map.html',
@@ -13,7 +13,6 @@ const ASSETS_TO_CACHE = [
   './crystal-cluster-valley-guide.html',
   './demon-king-guide.html',
   './diamond-guide.html',
-  './do-today.html',
   './elixir-scramble-guide.html',
   './event-guides.html',
   './falcon-quests-guide.html',
