@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Demon King — APEX</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#132420">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Royal City">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#0d1210;
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+    color:#f4efe4;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:0 0 32px;
+  }
+  .wrap{
+    margin-top:24px;
+    padding:0 16px;
+    width:100%;
+    max-width:460px;
+  }
+  .crest{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-bottom:26px;
+    text-align:center;
+  }
+  .crest h1{
+    font-size:24px;
+    font-weight:400;
+    letter-spacing:1.5px;
+    color:#e8c77a;
+    margin:0;
+    text-transform:uppercase;
+  }
+  .crest .kicker{
+    font-size:11px;
+    color:#7a6635;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    margin:0 0 8px;
+  }
+  .crest p{
+    font-size:12.5px;
+    color:#9c9488;
+    margin:6px 0 0;
+    letter-spacing:.3px;
+  }
+  .panel{
+    background:#132420;
+    border-radius:12px;
+    padding:20px 20px 6px;
+    margin-bottom:18px;
+  }
+  .section-label{
+    font-size:11px;
+    color:#6b6355;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-weight:700;
+    margin:0 0 12px 2px;
+  }
+  .muted{
+    font-size:12.5px;
+    color:#9c9488;
+    line-height:1.6;
+    margin:0 0 14px;
+  }
+
+  .stat-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:14px;
+  }
+  .stat-card{
+    border-radius:10px;
+    padding:14px;
+    background:#0d1210;
+    border:1px solid #2a3f37;
+    text-align:center;
+  }
+  .stat-card .num{
+    color:#e8c77a;
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .stat-card .label{
+    font-size:11.5px;
+    color:#9c9488;
+    line-height:1.4;
+  }
+
+  .check-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin:0 0 14px;
+  }
+  .check-item{
+    display:flex;
+    gap:8px;
+    font-size:12.5px;
+    color:#d9d2c2;
+    line-height:1.5;
+  }
+  .check-item span.c{
+    color:#e8c77a;
+    font-weight:700;
+    flex-shrink:0;
+  }
+
+  .tier-row{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .tier-card{
+    border-radius:10px;
+    padding:12px 10px;
+    background:#0d1210;
+    border:1px solid #2a3f37;
+    text-align:center;
+  }
+  .tier-card .name{
+    font-size:12px;
+    color:#e8c77a;
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .tier-card .desc{
+    font-size:10.5px;
+    color:#9c9488;
+    line-height:1.5;
+  }
+
+  .detail-card{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #2a3f37;
+    margin-bottom:10px;
+  }
+  .detail-card .title{
+    font-size:12.5px;
+    font-weight:700;
+    color:#e8c77a;
+    margin-bottom:4px;
+  }
+  .detail-card p{
+    margin:0;
+    font-size:11.5px;
+    color:#9c9488;
+    line-height:1.5;
+  }
+
+  .callout{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #7a6635;
+    margin-bottom:14px;
+  }
+  .callout p{
+    margin:0;
+    font-size:12.5px;
+    color:#e8c77a;
+    line-height:1.5;
+    font-weight:700;
+    text-align:center;
+  }
+
+  .divider-thin{
+    height:1px;
+    background:#2a3f37;
+    margin:0 0 18px;
+  }
+  .signoff{
+    text-align:center;
+    font-size:13px;
+    color:#e8c77a;
+    font-weight:700;
+    letter-spacing:.3px;
+    margin:0 0 4px;
+  }
+  .home-footer{
+    text-align:center;
+    margin-top:18px;
+    font-size:11px;
+    color:#5a554c;
+  }
+
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
+    background:#101613; border-bottom:1px solid #2a3f37;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .nav-strip{
+    display:flex; gap:8px; width:max-content; margin:0 auto;
+  }
+  .nav-pill{
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+    background:rgba(15,18,16,.88); border:1px solid #6b5f45; color:#cbc3b5;
+    font-size:12.5px; padding:8px 13px; border-radius:20px; transition:all .15s ease;
+    text-decoration:none; font-family:inherit;
+  }
+  .nav-pill:hover{ background:rgba(30,42,36,.95); color:#fff; }
+  .nav-pill.active{ background:#e8c77a; border-color:#e8c77a; color:#2a2416; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="nav-strip"><a href="royal-city-alliance-map.html" class="nav-pill">🏠 Home</a><a href="territory-map.html" class="nav-pill">🗺️ Map</a><a href="do-today.html" class="nav-pill">✅ Do Today</a><a href="game-guides.html" class="nav-pill">🎮 Game Guides</a><a href="event-guides.html" class="nav-pill active">🎉 Event Guides</a><a href="sanctuary-upgrades.html" class="nav-pill">🏰 Sanctuary</a><a href="server-time-chart.html" class="nav-pill">🕐 Server Time</a></div>
+</div>
+
+<div class="wrap">
+
+  <div class="crest">
+    <p class="kicker">Individual Event Guide</p>
+    <h1>Demon King</h1>
+    <p>APEX &middot; Last Asylum Alliance Strategy &amp; Reference Hub</p>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">The Event</div>
+    <p class="muted">An individual event held every Wednesday and Saturday, where a Demon King boss appears on the World Map. Players with Sanctuary Level 8 or higher can attack it.</p>
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="num">10</div>
+        <div class="label">Attacks per player, per day</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">Lv. 8+</div>
+        <div class="label">Sanctuary level required</div>
+      </div>
+    </div>
+    <p class="muted" style="margin-bottom:2px;">Rally attacks are not allowed during this event — it's solo damage only.</p>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Demon King Types &amp; Faction Counter</div>
+    <p class="muted">Each Demon King represents a faction and takes increased damage from the faction that counters it.</p>
+    <div class="tier-row">
+      <div class="tier-card">
+        <div class="name">Warrior</div>
+        <div class="desc">Countered by Ranger<br>heroes</div>
+      </div>
+      <div class="tier-card">
+        <div class="name">Ranger</div>
+        <div class="desc">Countered by Warlock<br>heroes</div>
+      </div>
+      <div class="tier-card">
+        <div class="name">Warlock</div>
+        <div class="desc">Countered by Warrior<br>heroes</div>
+      </div>
+    </div>
+    <p class="muted" style="margin-bottom:2px;">Using the correct hero faction is key to maximizing your total damage.</p>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Rewards</div>
+    <div class="detail-card">
+      <div class="title">Daily Achievement Rewards</div>
+      <p>Perform at least 3 attacks during the event session to unlock all daily achievement rewards.</p>
+    </div>
+    <div class="detail-card" style="margin-bottom:0;">
+      <div class="title">Personal Ranking Rewards</div>
+      <p>Compete against other players on your server based on total damage dealt each session. Rewards are distributed by personal ranking.</p>
+    </div>
+  </div>
+
+  <div class="divider-thin"></div>
+  <p class="section-label" style="text-align:center; margin-bottom:16px;">Maximizing Damage</p>
+
+  <div class="panel">
+    <div class="section-label">1. Offense Over Defense</div>
+    <div class="check-list">
+      <div class="check-item"><span class="c">+</span><span>The Demon King doesn't fight back — no tanks needed.</span></div>
+      <div class="check-item"><span class="c">+</span><span>Use 4 DPS + 1 Support, or 3 DPS + 2 Supports.</span></div>
+      <div class="check-item"><span class="c">+</span><span>Supports boost your damage dealers — choose heroes whose skills complement each other.</span></div>
+      <div class="check-item"><span class="c">+</span><span>Include a Purple SSR damage dealer for monster damage bonuses.</span></div>
+    </div>
+    <p class="muted" style="margin-bottom:2px;">If a Tank has more skill levels than your other damage dealers, it may still be the better choice — until a DPS catches up on skills.</p>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">2. Gear Priorities</div>
+    <div class="detail-card">
+      <div class="title">Sword</div>
+      <p>Use the highest-level Gold UR Sword you can get. Boosts base ATK and Crit Chance — a +0 UR sword outperforms a +30 SSR sword.</p>
+    </div>
+    <div class="detail-card">
+      <div class="title">Gloves</div>
+      <p>Use Level 30 SSR Gloves. At level 30 they add +12.25% damage to monsters, applied after all other calculations, while UR gloves only add ATK + Damage Resistance.</p>
+    </div>
+    <div class="detail-card" style="margin-bottom:0;">
+      <div class="title">Boots &amp; Chest</div>
+      <p>Not important against the Demon King — they give DEF, Damage Resistance, and HP, which you don't need here. Use whatever level you have.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">3. Skills &amp; Cooldowns</div>
+    <div class="check-list">
+      <div class="check-item"><span class="c">+</span><span>More stars mean higher skill ranks — your biggest source of damage.</span></div>
+      <div class="check-item"><span class="c">+</span><span>Read every skill and build synergies — don't just chase the highest ATK.</span></div>
+      <div class="check-item"><span class="c">+</span><span>Stacking buffs multiplies your damage.</span></div>
+      <div class="check-item"><span class="c">+</span><span>Skills trigger in order of their cooldowns — a slower buff skill can miss the window to boost a faster DPS skill.</span></div>
+      <div class="check-item"><span class="c">+</span><span>8-star UR heroes get Tenacity (min. Lv. 30): +ATK, HP, DEF and reduced cooldown speed.</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">4. Faction Bonus</div>
+    <p class="muted">Factions work like rock-paper-scissors: Warrior &gt; Warlock &gt; Ranger &gt; Warrior. Using the opposing faction deals 50% more damage.</p>
+    <div class="callout" style="margin-bottom:4px;">
+      <p>Power &gt; Faction when the investment gap is big.<br>A much more invested "wrong" faction can still outperform the advantaged one.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">5. Party Placement</div>
+    <div class="check-list">
+      <div class="check-item"><span class="c">+</span><span>No tanks needed, so placement is about maximizing damage, not survival.</span></div>
+      <div class="check-item"><span class="c">+</span><span>There's no perfect answer — placement affects damage in mysterious ways.</span></div>
+      <div class="check-item"><span class="c">+</span><span>Small changes can lead to huge damage differences.</span></div>
+    </div>
+    <p class="muted" style="margin-bottom:2px;">Experiment across your attacks each day, track your results, and keep what works.</p>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">6. Sanctuary Skins</div>
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="num">+1%</div>
+        <div class="label">Damage to monsters — owned</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">+5%</div>
+        <div class="label">Damage to monsters — equipped</div>
+      </div>
+    </div>
+    <p class="muted" style="margin-bottom:2px;">Total: up to +6% damage to the Demon King from Sanctuary skins alone.</p>
+  </div>
+
+  <div class="divider-thin"></div>
+  <p class="signoff">Test. Improve. Conquer.</p>
+  <div class="home-footer">APEX &middot; Last Asylum</div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Squad Building — APEX</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#132420">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Royal City">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  *{box-sizing:border-box;}
+  html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  html, body{ min-height:100%; }
+  body{
+    margin:0;
+    background:#0d1210;
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+    color:#f4efe4;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  a{ color:inherit; text-decoration:none; }
+  
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
+    background:#101613; border-bottom:1px solid #2a3f37;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .nav-strip{
+    display:flex; gap:8px; width:max-content; margin:0 auto;
+  }
+  .nav-pill{
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+    background:rgba(15,18,16,.88); border:1px solid #6b5f45; color:#cbc3b5;
+    font-size:12.5px; padding:8px 13px; border-radius:20px; transition:all .15s ease;
+    text-decoration:none; font-family:inherit;
+  }
+  .nav-pill:hover{ background:rgba(30,42,36,.95); color:#fff; }
+  .nav-pill.active{ background:#e8c77a; border-color:#e8c77a; color:#2a2416; font-weight:700; }
+
+  .page-wrap{ width:100%; max-width:460px; padding:60px 24px 40px; text-align:center; }
+  .kicker{ font-size:11px; color:#7a6635; text-transform:uppercase; letter-spacing:2px; margin:0 0 8px; }
+  h1{ font-size:24px; font-weight:400; letter-spacing:1.5px; color:#e8c77a; margin:0 0 20px; text-transform:uppercase; }
+  .empty-icon{ font-size:40px; margin-bottom:16px; opacity:.5; }
+  p.sub{ font-size:13px; color:#9c9488; line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="nav-strip"><a href="royal-city-alliance-map.html" class="nav-pill">🏠 Home</a><a href="territory-map.html" class="nav-pill">🗺️ Map</a><a href="do-today.html" class="nav-pill">✅ Do Today</a><a href="game-guides.html" class="nav-pill active">🎮 Game Guides</a><a href="event-guides.html" class="nav-pill">🎉 Event Guides</a><a href="sanctuary-upgrades.html" class="nav-pill">🏰 Sanctuary</a><a href="server-time-chart.html" class="nav-pill">🕐 Server Time</a></div>
+</div>
+<div class="page-wrap">
+  <div class="empty-icon">&#9998;</div>
+  <div class="kicker">Game Guides</div>
+  <h1>Squad Building</h1>
+  <p class="sub">Content coming soon — check back as this guide gets built out.</p>
+</div>
+</body>
+</html>

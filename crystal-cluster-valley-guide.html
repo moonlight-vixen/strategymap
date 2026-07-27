@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Crystal Cluster Valley — APEX</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#132420">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Royal City">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#0d1210;
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+    color:#f4efe4;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:0 0 32px;
+  }
+  .wrap{
+    margin-top:24px;
+    padding:0 16px;
+    width:100%;
+    max-width:460px;
+  }
+  .crest{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-bottom:26px;
+    text-align:center;
+  }
+  .crest h1{
+    font-size:24px;
+    font-weight:400;
+    letter-spacing:1.5px;
+    color:#e8c77a;
+    margin:0;
+    text-transform:uppercase;
+  }
+  .crest .kicker{
+    font-size:11px;
+    color:#7a6635;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    margin:0 0 8px;
+  }
+  .crest p{
+    font-size:12.5px;
+    color:#9c9488;
+    margin:6px 0 0;
+    letter-spacing:.3px;
+  }
+  .panel{
+    background:#132420;
+    border-radius:12px;
+    padding:20px 20px 6px;
+    margin-bottom:18px;
+  }
+  .section-label{
+    font-size:11px;
+    color:#6b6355;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-weight:700;
+    margin:0 0 12px 2px;
+  }
+  .muted{
+    font-size:12.5px;
+    color:#9c9488;
+    line-height:1.6;
+    margin:0 0 14px;
+  }
+
+  .rule-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .rule-card{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #2a3f37;
+  }
+  .rule-card .title{
+    font-size:12px;
+    font-weight:700;
+    color:#e8c77a;
+    margin-bottom:4px;
+  }
+  .rule-card p{
+    margin:0;
+    font-size:11.5px;
+    color:#9c9488;
+    line-height:1.5;
+  }
+
+  .phase{
+    margin-bottom:16px;
+  }
+  .phase-tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.5px;
+    color:#2a2416;
+    background:#e8c77a;
+    padding:3px 10px;
+    border-radius:20px;
+    margin-bottom:8px;
+  }
+  .phase-name{
+    font-size:13.5px;
+    font-weight:700;
+    color:#f4efe4;
+    margin:0 0 8px;
+  }
+  .check-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin:0 0 4px;
+  }
+  .check-item{
+    display:flex;
+    gap:8px;
+    font-size:12px;
+    color:#d9d2c2;
+    line-height:1.5;
+  }
+  .check-item span.c{
+    color:#e8c77a;
+    font-weight:700;
+    flex-shrink:0;
+  }
+
+  .tier-row{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .tier-card{
+    border-radius:10px;
+    padding:12px 10px;
+    background:#0d1210;
+    border:1px solid #2a3f37;
+    text-align:center;
+  }
+  .tier-card .name{
+    font-size:12px;
+    color:#e8c77a;
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .tier-card .desc{
+    font-size:10.5px;
+    color:#9c9488;
+    line-height:1.5;
+  }
+
+  .callout{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #7a6635;
+    margin-bottom:14px;
+  }
+  .callout p{
+    margin:0;
+    font-size:12.5px;
+    color:#e8c77a;
+    line-height:1.5;
+    font-weight:700;
+  }
+
+  .steps{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .step{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:8px 2px;
+  }
+  .step-num{
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    border:1px solid #7a6635;
+    color:#e8c77a;
+    font-size:11px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .step p{
+    margin:0;
+    font-size:12.5px;
+    color:#d9d2c2;
+    line-height:1.5;
+  }
+  .step b{color:#f4efe4;}
+
+  .split{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:14px;
+  }
+  .card{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #2a3f37;
+  }
+  .card .tag{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-weight:700;
+    margin-bottom:8px;
+  }
+  .card.yes .tag{color:#e8c77a;}
+  .card.no .tag{color:#c07a5a;}
+  .card ul{
+    margin:0;
+    padding-left:0;
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .card li{
+    font-size:11.5px;
+    color:#d9d2c2;
+    line-height:1.5;
+    display:flex;
+    gap:6px;
+  }
+  .card.yes li span{color:#e8c77a; flex-shrink:0;}
+  .card.no li span{color:#c07a5a; flex-shrink:0;}
+
+  .divider-thin{
+    height:1px;
+    background:#2a3f37;
+    margin:0 0 18px;
+  }
+  .signoff{
+    text-align:center;
+    font-size:13px;
+    color:#e8c77a;
+    font-weight:700;
+    letter-spacing:.3px;
+    margin:0 0 4px;
+  }
+  .home-footer{
+    text-align:center;
+    margin-top:18px;
+    font-size:11px;
+    color:#5a554c;
+  }
+
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
+    background:#101613; border-bottom:1px solid #2a3f37;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .nav-strip{
+    display:flex; gap:8px; width:max-content; margin:0 auto;
+  }
+  .nav-pill{
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+    background:rgba(15,18,16,.88); border:1px solid #6b5f45; color:#cbc3b5;
+    font-size:12.5px; padding:8px 13px; border-radius:20px; transition:all .15s ease;
+    text-decoration:none; font-family:inherit;
+  }
+  .nav-pill:hover{ background:rgba(30,42,36,.95); color:#fff; }
+  .nav-pill.active{ background:#e8c77a; border-color:#e8c77a; color:#2a2416; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="nav-strip"><a href="royal-city-alliance-map.html" class="nav-pill">🏠 Home</a><a href="territory-map.html" class="nav-pill">🗺️ Map</a><a href="do-today.html" class="nav-pill">✅ Do Today</a><a href="game-guides.html" class="nav-pill">🎮 Game Guides</a><a href="event-guides.html" class="nav-pill active">🎉 Event Guides</a><a href="sanctuary-upgrades.html" class="nav-pill">🏰 Sanctuary</a><a href="server-time-chart.html" class="nav-pill">🕐 Server Time</a></div>
+</div>
+
+<div class="wrap">
+
+  <div class="crest">
+    <p class="kicker">First-time player guide</p>
+    <h1>Crystal Cluster Valley</h1>
+    <p>APEX &middot; Last Asylum Alliance Strategy &amp; Reference Hub</p>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">The event</div>
+    <p class="muted">A 30-minute PvP gathering event. Gather crystals, kill Plague Rats for XP, fight smart, and earn the most Crystal Points to claim victory.</p>
+    <div class="rule-grid">
+      <div class="rule-card">
+        <div class="title">Troop deaths are temporary</div>
+        <p>Troops only die once the event ends.</p>
+      </div>
+      <div class="rule-card">
+        <div class="title">Healing required</div>
+        <p>Use healing speedups to heal wounded troops quickly.</p>
+      </div>
+      <div class="rule-card">
+        <div class="title">Shields don't work</div>
+        <p>Everyone can attack everyone.</p>
+      </div>
+      <div class="rule-card">
+        <div class="title">Highest crystals wins</div>
+        <p>Collect, fight, and dominate the leaderboard.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Event timeline</div>
+
+    <div class="phase">
+      <div class="phase-tag">0:00 – 10:00</div>
+      <p class="phase-name">Early game: level up fast</p>
+      <div class="check-list">
+        <div class="check-item"><span class="c">＋</span><span>Kill Plague Rats to gain XP and unlock Event Skills.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Gather nearby Crystal Nodes.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Don't chase PvP early.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Unlocking your skills is the top priority.</span></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-tag">10:00 – 23:00</div>
+      <p class="phase-name">Mid game: farm &amp; rotate</p>
+      <div class="check-list">
+        <div class="check-item"><span class="c">＋</span><span>Focus on Level 2 and Level 3 Crystal Clusters.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Rotate between nodes — never sit idle.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Grab Instant Crystal spawns whenever they appear.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Pick your fights — only fight if you can win.</span></div>
+      </div>
+    </div>
+
+    <div class="phase" style="margin-bottom:4px;">
+      <div class="phase-tag">23:00 – 30:00</div>
+      <p class="phase-name">Final push: go big</p>
+      <div class="check-list">
+        <div class="check-item"><span class="c">＋</span><span>Strong players should contest the Throne.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Smaller accounts should keep farming nearby Crystal Nodes.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>This is where the highest points are earned.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Crystal node priority</div>
+    <div class="tier-row">
+      <div class="tier-card">
+        <div class="name">Level 1</div>
+        <div class="desc">Easy to gather. Low crystals. Best for early game only.</div>
+      </div>
+      <div class="tier-card">
+        <div class="name">Level 2</div>
+        <div class="desc">Best balance of reward and safety. Less contested.</div>
+      </div>
+      <div class="tier-card">
+        <div class="name">Level 3</div>
+        <div class="desc">Highest reward. Heavily contested — be ready to fight.</div>
+      </div>
+    </div>
+    <div class="callout">
+      <p>Instant Crystal Drops spawn randomly and grant huge rewards. Always go get them!</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Skill tree — recommended order</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><p><b>Crystal Income</b> — increase crystals gained over time.</p></div>
+      <div class="step"><div class="step-num">2</div><p><b>March Speed</b> — move faster, gather more, escape easier.</p></div>
+      <div class="step"><div class="step-num">3</div><p><b>Crystal Capture Bonus</b> — more crystals for every node you capture.</p></div>
+      <div class="step"><div class="step-num">4</div><p><b>Gathering Speed</b> — collect crystals faster at all clusters.</p></div>
+      <div class="step"><div class="step-num">5</div><p><b>PvP Skill</b> — choose based on your playstyle.</p></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Battle tips</div>
+    <div class="check-list" style="margin-bottom:14px;">
+      <div class="check-item"><span class="c">＋</span><span>Fight only battles you can win quickly.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Scout players before attacking.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Avoid fighting stronger opponents.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Keep every march moving at all times.</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Do &amp; don't</div>
+    <div class="split">
+      <div class="card yes">
+        <div class="tag">Do</div>
+        <ul>
+          <li><span>✓</span>Kill rats early to unlock skills</li>
+          <li><span>✓</span>Keep all marches busy</li>
+          <li><span>✓</span>Gather higher-level crystals as you grow</li>
+          <li><span>✓</span>Grab instant crystal spawns</li>
+          <li><span>✓</span>Scout before attacking</li>
+          <li><span>✓</span>Heal wounded troops quickly</li>
+        </ul>
+      </div>
+      <div class="card no">
+        <div class="tag">Don't</div>
+        <ul>
+          <li><span>✕</span>Fight immediately</li>
+          <li><span>✕</span>Attack players much stronger than you</li>
+          <li><span>✕</span>Stay on low-level crystals too long</li>
+          <li><span>✕</span>Chase revenge</li>
+          <li><span>✕</span>Forget instant crystal spawns</li>
+          <li><span>✕</span>Let marches sit idle</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Remember</div>
+    <div class="callout" style="margin-bottom:14px;">
+      <p>Crystal gathering earns more points than unnecessary PvP. Smart farming and constant march activity are the keys to high rankings.</p>
+    </div>
+  </div>
+
+  <div class="divider-thin"></div>
+  <p class="signoff">Farm smart. Fight smarter. Win together.</p>
+  <div class="home-footer">APEX &middot; Last Asylum</div>
+
+</div>
+
+</body>
+</html>

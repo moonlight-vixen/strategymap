@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shop Priority Guide — APEX</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#132420">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Royal City">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#0d1210;
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+    color:#f4efe4;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:0 0 32px;
+  }
+  .wrap{
+    margin-top:24px;
+    padding:0 16px;
+    width:100%;
+    max-width:460px;
+  }
+  .crest{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-bottom:26px;
+    text-align:center;
+  }
+  .crest h1{
+    font-size:24px;
+    font-weight:400;
+    letter-spacing:1.5px;
+    color:#e8c77a;
+    margin:0;
+    text-transform:uppercase;
+  }
+  .crest p{
+    font-size:12.5px;
+    color:#9c9488;
+    margin:6px 0 0;
+    letter-spacing:.3px;
+  }
+  .panel{
+    background:#132420;
+    border-radius:12px;
+    padding:20px 20px 16px;
+    margin-bottom:18px;
+  }
+  .shop-name{
+    font-size:15px;
+    color:#e8c77a;
+    font-weight:700;
+    letter-spacing:.5px;
+    margin:0 0 2px;
+  }
+  .shop-sub{
+    font-size:11.5px;
+    color:#9c9488;
+    margin:0 0 14px;
+    font-style:italic;
+  }
+  .item-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:4px;
+  }
+  .item{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  .item-num{
+    width:18px;
+    flex-shrink:0;
+    font-size:12px;
+    color:#6b6355;
+    font-weight:700;
+  }
+  .item-text{
+    font-size:12.5px;
+    color:#d9d2c2;
+    line-height:1.5;
+  }
+  .item-text b{color:#f4efe4; font-weight:700;}
+  .tag{
+    color:#e8c77a;
+    font-size:11px;
+  }
+  .tag.must{
+    background:#e8c77a;
+    color:#2a2416;
+    font-weight:700;
+    padding:1px 7px;
+    border-radius:6px;
+    margin-left:2px;
+  }
+  .note{
+    font-size:11.5px;
+    color:#9c9488;
+    line-height:1.5;
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid #2a3f37;
+  }
+  .note b{color:#e8c77a;}
+
+  .divider-thin{
+    height:1px;
+    background:#2a3f37;
+    margin:0 0 18px;
+  }
+  .signoff{
+    text-align:center;
+    font-size:13px;
+    color:#e8c77a;
+    font-weight:700;
+    letter-spacing:.3px;
+    margin:0 0 4px;
+  }
+  .home-footer{
+    text-align:center;
+    margin-top:18px;
+    font-size:11px;
+    color:#5a554c;
+  }
+
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
+    background:#101613; border-bottom:1px solid #2a3f37;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .nav-strip{
+    display:flex; gap:8px; width:max-content; margin:0 auto;
+  }
+  .nav-pill{
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+    background:rgba(15,18,16,.88); border:1px solid #6b5f45; color:#cbc3b5;
+    font-size:12.5px; padding:8px 13px; border-radius:20px; transition:all .15s ease;
+    text-decoration:none; font-family:inherit;
+  }
+  .nav-pill:hover{ background:rgba(30,42,36,.95); color:#fff; }
+  .nav-pill.active{ background:#e8c77a; border-color:#e8c77a; color:#2a2416; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="nav-strip"><a href="royal-city-alliance-map.html" class="nav-pill">🏠 Home</a><a href="territory-map.html" class="nav-pill">🗺️ Map</a><a href="do-today.html" class="nav-pill">✅ Do Today</a><a href="game-guides.html" class="nav-pill active">🎮 Game Guides</a><a href="event-guides.html" class="nav-pill">🎉 Event Guides</a><a href="sanctuary-upgrades.html" class="nav-pill">🏰 Sanctuary</a><a href="server-time-chart.html" class="nav-pill">🕐 Server Time</a></div>
+</div>
+
+<div class="wrap">
+
+  <div class="crest">
+    <h1>Shop Priority Guide</h1>
+    <p>APEX &middot; Last Asylum Alliance Strategy &amp; Reference Hub</p>
+  </div>
+
+  <div class="panel">
+    <div class="shop-name">VIP Shop</div>
+    <div class="shop-sub">Best value for daily progression</div>
+    <div class="item-list">
+      <div class="item"><span class="item-num">1</span><span class="item-text"><b>10 Stamina</b> <span class="tag must">Must buy</span></span></div>
+      <div class="item"><span class="item-num">2</span><span class="item-text"><b>UR Hero Omni Shard</b> — <span class="tag">High priority</span></span></div>
+      <div class="item"><span class="item-num">3</span><span class="item-text"><b>60m Speedup</b></span></div>
+      <div class="item"><span class="item-num">4</span><span class="item-text"><b>3h Speedup</b></span></div>
+      <div class="item"><span class="item-num">5</span><span class="item-text"><b>8h Speedup</b> — prioritize after UR progress</span></div>
+      <div class="item"><span class="item-num">6</span><span class="item-text"><b>5m Speedup</b></span></div>
+      <div class="item"><span class="item-num">7</span><span class="item-text"><b>SSR Hero Omni Shard</b> — good if currency remains</span></div>
+    </div>
+    <div class="note"><b>Note:</b> Stamina first, then UR progression, then speedups, then SSR shards.</div>
+  </div>
+
+  <div class="panel">
+    <div class="shop-name">Honor Shop</div>
+    <div class="shop-sub">Do not waste these points</div>
+    <div class="item-list">
+      <div class="item"><span class="item-num">1</span><span class="item-text"><b>Gear Blueprint (UR)</b> — only buy this</span></div>
+    </div>
+    <div class="note"><b>Note:</b> Only buy this. Don't waste points on other items.</div>
+  </div>
+
+  <div class="panel">
+    <div class="shop-name">Alliance Shop</div>
+    <div class="shop-sub">Strong long-term utility and progression</div>
+    <div class="item-list">
+      <div class="item"><span class="item-num">1</span><span class="item-text"><b>UR Hero Omni Shard</b> <span class="tag must">Must buy</span></span></div>
+      <div class="item"><span class="item-num">2</span><span class="item-text"><b>Raven Essence</b> — <span class="tag">High priority</span></span></div>
+      <div class="item"><span class="item-num">3</span><span class="item-text"><b>Lv.1 Raven Gear Chest</b> — <span class="tag">High priority</span></span></div>
+      <div class="item"><span class="item-num">4</span><span class="item-text"><b>Direct Relocate</b> — <span class="tag">High priority</span></span></div>
+      <div class="item"><span class="item-num">5</span><span class="item-text"><b>60m Construction Speedup</b></span></div>
+      <div class="item"><span class="item-num">6</span><span class="item-text"><b>8h Construction Speedup</b></span></div>
+      <div class="item"><span class="item-num">7</span><span class="item-text"><b>60m Research Speedup</b></span></div>
+      <div class="item"><span class="item-num">8</span><span class="item-text"><b>8h Research Speedup</b></span></div>
+      <div class="item"><span class="item-num">9</span><span class="item-text"><b>60m Healing Speedup</b></span></div>
+      <div class="item"><span class="item-num">10</span><span class="item-text"><b>8h Healing Speedup</b></span></div>
+      <div class="item"><span class="item-num">11</span><span class="item-text"><b>60m Training Speedup</b></span></div>
+      <div class="item"><span class="item-num">12</span><span class="item-text"><b>8h Training Speedup</b></span></div>
+      <div class="item"><span class="item-num">13</span><span class="item-text"><b>Shield (24h)</b> — one per week</span></div>
+    </div>
+    <div class="note">This shop is one of the best for progression and utility. Never ignore UR shards and Raven items.</div>
+  </div>
+
+  <div class="panel">
+    <div class="shop-name">Expedition Shop</div>
+    <div class="shop-sub">High-value priority shop</div>
+    <div class="item-list">
+      <div class="item"><span class="item-num">1</span><span class="item-text"><b>Expedition Chest (UR)</b> — <span class="tag">High priority</span></span></div>
+      <div class="item"><span class="item-num">2</span><span class="item-text"><b>UR Hero Omni Shard</b> — <span class="tag">High priority</span></span></div>
+      <div class="item"><span class="item-num">3</span><span class="item-text"><b>Lv.3 Raven Gear Chest</b></span></div>
+      <div class="item"><span class="item-num">4</span><span class="item-text"><b>Raven Essence</b></span></div>
+      <div class="item"><span class="item-num">5</span><span class="item-text"><b>Universal Curio Shard</b></span></div>
+      <div class="item"><span class="item-num">6</span><span class="item-text"><b>Recruit Ticket</b></span></div>
+    </div>
+    <div class="note"><b>Note:</b> Focus on rare progression items before spending on lower-impact options.</div>
+  </div>
+
+  <div class="panel">
+    <div class="shop-name">Sanctuary Shop</div>
+    <div class="shop-sub">Simple but efficient priority</div>
+    <div class="item-list">
+      <div class="item"><span class="item-num">1</span><span class="item-text"><b>UR Hero Omni Shard</b> <span class="tag must">Must buy</span></span></div>
+      <div class="item"><span class="item-num">2</span><span class="item-text"><b>Raven Essence</b> — <span class="tag">High priority</span></span></div>
+      <div class="item"><span class="item-num">3</span><span class="item-text"><b>SSR Hero Omni Shard</b></span></div>
+      <div class="item"><span class="item-num">4</span><span class="item-text"><b>Gearstone</b></span></div>
+    </div>
+    <div class="note"><b>Note:</b> UR progression first, then Raven value, then secondary hero progress.</div>
+  </div>
+
+  <div class="divider-thin"></div>
+  <p class="signoff">Spend smart. Prioritize long-term value over convenience.</p>
+  <div class="home-footer">APEX &middot; Last Asylum</div>
+
+</div>
+
+</body>
+</html>

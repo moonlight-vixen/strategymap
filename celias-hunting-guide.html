@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Celia's Hunting — APEX</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#132420">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Royal City">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#0d1210;
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+    color:#f4efe4;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:0 0 32px;
+  }
+  .wrap{
+    margin-top:24px;
+    padding:0 16px;
+    width:100%;
+    max-width:460px;
+  }
+  .crest{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-bottom:26px;
+    text-align:center;
+  }
+  .crest h1{
+    font-size:24px;
+    font-weight:400;
+    letter-spacing:1.5px;
+    color:#e8c77a;
+    margin:0;
+    text-transform:uppercase;
+  }
+  .crest .kicker{
+    font-size:11px;
+    color:#7a6635;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    margin:0 0 8px;
+  }
+  .crest p{
+    font-size:12.5px;
+    color:#9c9488;
+    margin:6px 0 0;
+    letter-spacing:.3px;
+  }
+  .panel{
+    background:#132420;
+    border-radius:12px;
+    padding:20px 20px 6px;
+    margin-bottom:18px;
+  }
+  .section-label{
+    font-size:11px;
+    color:#6b6355;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-weight:700;
+    margin:0 0 12px 2px;
+  }
+  .lore{
+    font-size:13px;
+    color:#d9d2c2;
+    line-height:1.7;
+    font-style:italic;
+    margin:0 0 4px;
+  }
+  .muted{
+    font-size:12.5px;
+    color:#9c9488;
+    line-height:1.6;
+    margin:0 0 14px;
+  }
+
+  .steps{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .step{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:8px 2px;
+  }
+  .step-num{
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    border:1px solid #7a6635;
+    color:#e8c77a;
+    font-size:11px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .step p{
+    margin:0;
+    font-size:12.5px;
+    color:#d9d2c2;
+    line-height:1.5;
+  }
+  .step b{color:#f4efe4;}
+
+  .check-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin:0 0 4px;
+  }
+  .check-item{
+    display:flex;
+    gap:8px;
+    font-size:12.5px;
+    color:#d9d2c2;
+    line-height:1.5;
+  }
+  .check-item span.c{
+    color:#e8c77a;
+    font-weight:700;
+    flex-shrink:0;
+  }
+
+  .callout{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #7a6635;
+    margin-bottom:14px;
+  }
+  .callout p{
+    margin:0;
+    font-size:12.5px;
+    color:#e8c77a;
+    line-height:1.5;
+    font-weight:700;
+    text-align:center;
+  }
+
+  .split{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:4px;
+  }
+  .card{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #2a3f37;
+  }
+  .card .tag{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-weight:700;
+    color:#e8c77a;
+    margin-bottom:6px;
+  }
+  .card p{
+    margin:0;
+    font-size:11.5px;
+    color:#9c9488;
+    line-height:1.5;
+  }
+
+  .divider-thin{
+    height:1px;
+    background:#2a3f37;
+    margin:0 0 18px;
+  }
+  .signoff{
+    text-align:center;
+    font-size:13px;
+    color:#e8c77a;
+    font-weight:700;
+    letter-spacing:.3px;
+    margin:0 0 4px;
+  }
+  .home-footer{
+    text-align:center;
+    margin-top:18px;
+    font-size:11px;
+    color:#5a554c;
+  }
+
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
+    background:#101613; border-bottom:1px solid #2a3f37;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .nav-strip{
+    display:flex; gap:8px; width:max-content; margin:0 auto;
+  }
+  .nav-pill{
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+    background:rgba(15,18,16,.88); border:1px solid #6b5f45; color:#cbc3b5;
+    font-size:12.5px; padding:8px 13px; border-radius:20px; transition:all .15s ease;
+    text-decoration:none; font-family:inherit;
+  }
+  .nav-pill:hover{ background:rgba(30,42,36,.95); color:#fff; }
+  .nav-pill.active{ background:#e8c77a; border-color:#e8c77a; color:#2a2416; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="nav-strip"><a href="royal-city-alliance-map.html" class="nav-pill">🏠 Home</a><a href="territory-map.html" class="nav-pill">🗺️ Map</a><a href="do-today.html" class="nav-pill">✅ Do Today</a><a href="game-guides.html" class="nav-pill">🎮 Game Guides</a><a href="event-guides.html" class="nav-pill active">🎉 Event Guides</a><a href="sanctuary-upgrades.html" class="nav-pill">🏰 Sanctuary</a><a href="server-time-chart.html" class="nav-pill">🕐 Server Time</a></div>
+</div>
+
+<div class="wrap">
+
+  <div class="crest">
+    <p class="kicker">Event guide</p>
+    <h1>Celia's Hunting</h1>
+    <p>APEX &middot; Last Asylum Alliance Strategy &amp; Reference Hub</p>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">The Threat</div>
+    <p class="lore">Blights have been spotted around the territory, posing a significant threat. Join forces with Celia to eradicate all evil — complete Rally Quests to earn rare rewards.</p>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">How It Works</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><p><b>Find the Magnifying Glass</b> — go to the magnifying glass on your map to spawn Incident Blights.</p></div>
+      <div class="step"><div class="step-num">2</div><p><b>Spawn Incident Blights</b> — choose the Incident Blight you want to challenge and spawn it on the map.</p></div>
+      <div class="step"><div class="step-num">3</div><p><b>Start a Rally</b> — rally against the Blight so you and your alliance can work together to defeat it.</p></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">About Incident Blights</div>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Incident Blights appear across the territory at regular intervals.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>The higher the level, the tougher the Blight and the better the rewards.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Work with your alliance to deal more damage and claim more rewards.</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Rewards</div>
+    <div class="split">
+      <div class="card">
+        <div class="tag">Rally Initiator</div>
+        <p>Initiate a rally to receive 2 random rewards.</p>
+      </div>
+      <div class="card">
+        <div class="tag">Rally Participant</div>
+        <p>Join rallies to build toward your reward cap over time.</p>
+      </div>
+    </div>
+    <div class="callout" style="margin-bottom:4px;">
+      <p>Initiating a rally consumes Stamina —<br>joining one does not.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Rally Rewards</div>
+    <p class="muted" style="margin-bottom:2px;">Defeat higher-level Blights to earn better rewards. Rally up with your alliance and claim victory.</p>
+  </div>
+
+  <div class="divider-thin"></div>
+  <p class="signoff">Unite with Celia. Cleanse the land. Bring peace to the realm.</p>
+  <div class="home-footer">APEX &middot; Last Asylum</div>
+
+</div>
+
+</body>
+</html>

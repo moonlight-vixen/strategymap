@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alliance Duel — APEX</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#132420">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Royal City">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#0d1210;
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+    color:#f4efe4;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:0 0 32px;
+  }
+  .wrap{
+    margin-top:24px;
+    padding:0 16px;
+    width:100%;
+    max-width:460px;
+  }
+  .crest{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-bottom:26px;
+    text-align:center;
+  }
+  .crest h1{
+    font-size:24px;
+    font-weight:400;
+    letter-spacing:1.5px;
+    color:#e8c77a;
+    margin:0;
+    text-transform:uppercase;
+  }
+  .crest .kicker{
+    font-size:11px;
+    color:#7a6635;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    margin:0 0 8px;
+  }
+  .crest p{
+    font-size:12.5px;
+    color:#9c9488;
+    margin:6px 0 0;
+    letter-spacing:.3px;
+  }
+  .panel{
+    background:#132420;
+    border-radius:12px;
+    padding:20px 20px 6px;
+    margin-bottom:18px;
+  }
+  .section-label{
+    font-size:11px;
+    color:#6b6355;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-weight:700;
+    margin:0 0 12px 2px;
+  }
+  .muted{
+    font-size:12.5px;
+    color:#9c9488;
+    line-height:1.6;
+    margin:0 0 14px;
+  }
+
+  .overview-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:4px;
+  }
+  .overview-item .lbl{
+    font-size:11px;
+    font-weight:700;
+    color:#e8c77a;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    margin-bottom:2px;
+  }
+  .overview-item p{
+    margin:0;
+    font-size:12.5px;
+    color:#d9d2c2;
+    line-height:1.5;
+  }
+
+  .day-tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.5px;
+    color:#2a2416;
+    background:#e8c77a;
+    padding:3px 10px;
+    border-radius:20px;
+    margin-bottom:8px;
+  }
+  .day-focus{
+    font-size:12px;
+    color:#9c9488;
+    margin:0 0 14px;
+    font-style:italic;
+  }
+  .sub-head{
+    font-size:12.5px;
+    font-weight:700;
+    color:#f4efe4;
+    margin:14px 0 6px;
+  }
+  .sub-head:first-of-type{margin-top:0;}
+  .check-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin:0 0 4px;
+  }
+  .check-item{
+    display:flex;
+    gap:8px;
+    font-size:12px;
+    color:#d9d2c2;
+    line-height:1.5;
+  }
+  .check-item span.c{
+    color:#e8c77a;
+    font-weight:700;
+    flex-shrink:0;
+  }
+  .tips-box{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #2a3f37;
+    margin-top:14px;
+    margin-bottom:14px;
+  }
+  .tips-box .tag{
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-weight:700;
+    color:#e8c77a;
+    margin-bottom:6px;
+  }
+  .tips-box .check-list{margin-bottom:0;}
+
+  .callout{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #7a6635;
+    margin-bottom:14px;
+  }
+  .callout p{
+    margin:0;
+    font-size:12.5px;
+    color:#e8c77a;
+    line-height:1.5;
+    font-weight:700;
+  }
+
+  .divider-thin{
+    height:1px;
+    background:#2a3f37;
+    margin:0 0 18px;
+  }
+  .signoff{
+    text-align:center;
+    font-size:13px;
+    color:#e8c77a;
+    font-weight:700;
+    letter-spacing:.3px;
+    margin:0 0 4px;
+  }
+  .home-footer{
+    text-align:center;
+    margin-top:18px;
+    font-size:11px;
+    color:#5a554c;
+  }
+
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
+    background:#101613; border-bottom:1px solid #2a3f37;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .nav-strip{
+    display:flex; gap:8px; width:max-content; margin:0 auto;
+  }
+  .nav-pill{
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+    background:rgba(15,18,16,.88); border:1px solid #6b5f45; color:#cbc3b5;
+    font-size:12.5px; padding:8px 13px; border-radius:20px; transition:all .15s ease;
+    text-decoration:none; font-family:inherit;
+  }
+  .nav-pill:hover{ background:rgba(30,42,36,.95); color:#fff; }
+  .nav-pill.active{ background:#e8c77a; border-color:#e8c77a; color:#2a2416; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="nav-strip"><a href="royal-city-alliance-map.html" class="nav-pill">🏠 Home</a><a href="territory-map.html" class="nav-pill">🗺️ Map</a><a href="do-today.html" class="nav-pill">✅ Do Today</a><a href="game-guides.html" class="nav-pill">🎮 Game Guides</a><a href="event-guides.html" class="nav-pill active">🎉 Event Guides</a><a href="sanctuary-upgrades.html" class="nav-pill">🏰 Sanctuary</a><a href="server-time-chart.html" class="nav-pill">🕐 Server Time</a></div>
+</div>
+
+<div class="wrap">
+
+  <div class="crest">
+    <p class="kicker">Daily strategy &amp; scoring guide</p>
+    <h1>Alliance Duel</h1>
+    <p>APEX &middot; Last Asylum Alliance Strategy &amp; Reference Hub</p>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Event overview</div>
+    <div class="overview-list">
+      <div class="overview-item">
+        <div class="lbl">Purpose</div>
+        <p>Compete for points against an opposing alliance to determine the winner.</p>
+      </div>
+      <div class="overview-item">
+        <div class="lbl">Goal</div>
+        <p>Win the daily point battle at reset. The alliance with the higher total wins the day.</p>
+      </div>
+      <div class="overview-item">
+        <div class="lbl">Rewards</div>
+        <p>Unlock daily reward chests as you cross personal point thresholds — worth chasing even on a day you're losing.</p>
+      </div>
+      <div class="overview-item">
+        <div class="lbl">Golden rule</div>
+        <p>Save your resources for the right day. Every phase rewards a different resource — hoarding is the whole strategy.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="day-tag">Day 1</div>
+    <p class="sub-head" style="margin-top:0;">Enhance Raven</p>
+    <p class="day-focus">Focus: Raven + Herb Gathering</p>
+
+    <p class="sub-head">Raven &amp; Falcon</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Save Falcon Quests from the weekend and claim them Monday.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Use saved Raven Essence and Raven Fruit.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Run rallies if Raven Survival Battle is active.</span></div>
+    </div>
+
+    <p class="sub-head">Herb gathering (Lv. 8–10)</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Gather Lv. 8–10 Herb Tiles, or the highest available.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Gathering takes about 6 hours — start early so marches finish during the phase.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Send all squads, and immediately resend them to keep earning points.</span></div>
+    </div>
+
+    <p class="sub-head">Build prep</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Start your longest building upgrades.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Do not collect completed buildings — save them for Tuesday.</span></div>
+    </div>
+
+    <div class="tips-box">
+      <div class="tag">Tips</div>
+      <div class="check-list">
+        <div class="check-item"><span class="c">＋</span><span>Keep all squads gathering.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Stop using Raven items once you reach the point cap.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Save Falcon Quests Sunday night.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="day-tag">Day 2</div>
+    <p class="sub-head" style="margin-top:0;">Build Territory</p>
+    <p class="day-focus">Focus: Building Speedups</p>
+
+    <p class="sub-head">Build every day</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Keep builders active with a long upgrade always running.</span></div>
+    </div>
+
+    <p class="sub-head">Save speedups</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Never use Building Speedups before Tuesday.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Save all Building Speedups for Building Day.</span></div>
+    </div>
+
+    <p class="sub-head">Building day</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Finish Monday's long upgrades using saved Speedups.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Start another long upgrade right after finishing.</span></div>
+    </div>
+
+    <div class="tips-box">
+      <div class="tag">Tips</div>
+      <div class="check-list">
+        <div class="check-item"><span class="c">＋</span><span>Hoard Building Speedups.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Plan long builds to finish Tuesday.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Save completed buildings from Monday before collecting — preparation makes Tuesday one of the easiest max-point days.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="day-tag">Day 3</div>
+    <p class="sub-head" style="margin-top:0;">Tech Research</p>
+    <p class="day-focus">Focus: Research Speedups + Research Scrolls</p>
+
+    <p class="sub-head">Research every day</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Always keep research running — prioritize long projects.</span></div>
+    </div>
+
+    <p class="sub-head">Save research speedups</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Never use Research Speedups on normal days.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Save all Speedups for Wednesday.</span></div>
+    </div>
+
+    <p class="sub-head">Research scrolls</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Never use Scrolls early — save every one for Tech Research Day.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Scrolls give maximum Alliance Duel points.</span></div>
+    </div>
+
+    <div class="tips-box">
+      <div class="tag">Tips</div>
+      <div class="check-list">
+        <div class="check-item"><span class="c">＋</span><span>Finish long research Wednesday, then start another before logging off.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Hoarding Speedups and Scrolls makes Wednesday an easy max-point day.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="day-tag">Day 4</div>
+    <p class="sub-head" style="margin-top:0;">Enhance Heroes</p>
+    <p class="day-focus">Focus: Hero Tickets</p>
+
+    <p class="sub-head">Hoard hero tickets</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Save Hero Recruitment Tickets all week — open them Thursday.</span></div>
+    </div>
+
+    <p class="sub-head">Use in bulk</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Use tickets only if you have 300+ — large summons give better RNG and results.</span></div>
+    </div>
+
+    <p class="sub-head">If you have less</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Avoid small summons — focus on hero and skill upgrades instead.</span></div>
+    </div>
+
+    <div class="tips-box">
+      <div class="tag">Tips</div>
+      <div class="check-list">
+        <div class="check-item"><span class="c">＋</span><span>Save all Hero Tickets — large summons earn more Alliance Duel points.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Bulk summons improve chances for higher-quality heroes.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Under 300 tickets? Keep saving.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="day-tag">Day 5</div>
+    <p class="sub-head" style="margin-top:0;">Mixed Day</p>
+    <p class="day-focus">Focus: Build &middot; Research &middot; Train</p>
+
+    <p class="sub-head">Objective</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Earn points from Building, Research, and Troop Training — using all three gives the highest score.</span></div>
+    </div>
+
+    <p class="sub-head">Falcon quest</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Complete one Falcon Quest for quick points.</span></div>
+    </div>
+
+    <p class="sub-head">Construction &amp; research</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Start or finish a building — Building Speedups count.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Start or complete research — Research Speedups count.</span></div>
+    </div>
+
+    <p class="sub-head">Troop training</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Train troops — Training Boosts and Speedups count.</span></div>
+    </div>
+
+    <p class="sub-head">Minimum speedups</p>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>1-minute Building Speedup</span></div>
+      <div class="check-item"><span class="c">＋</span><span>1-minute Research Speedup</span></div>
+      <div class="check-item"><span class="c">＋</span><span>1-minute Training Speedup</span></div>
+    </div>
+
+    <div class="tips-box">
+      <div class="tag">Best method</div>
+      <div class="check-list">
+        <div class="check-item"><span class="c">＋</span><span>Start a building, start research, and train troops — then use Speedups on all three.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Splitting points across all tasks helps your alliance reach higher chests faster.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Pro tips</div>
+    <div class="check-list" style="margin-bottom:14px;">
+      <div class="check-item"><span class="c">＋</span><span><b style="color:#f4efe4">Watch the scoreboard</b> — if winning big near reset, stop spending and save for tomorrow.</span></div>
+      <div class="check-item"><span class="c">＋</span><span><b style="color:#f4efe4">Reset snipe</b> — be online 15 minutes before reset to finish with Speedups.</span></div>
+      <div class="check-item"><span class="c">＋</span><span><b style="color:#f4efe4">Unlock chests</b> — aim for personal point thresholds for Gems and Speedups, even on a losing day.</span></div>
+    </div>
+  </div>
+
+  <div class="divider-thin"></div>
+  <p class="signoff">Save smart. Spend on time. Win the day.</p>
+  <div class="home-footer">APEX &middot; Last Asylum</div>
+
+</div>
+
+</body>
+</html>

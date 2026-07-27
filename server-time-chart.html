@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>24-Hour Time Zone Chart — APEX</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#132420">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Royal City">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#0d1210;
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+    color:#f4efe4;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:0 0 32px;
+  }
+  .wrap{
+    margin-top:24px;
+    padding:0 16px;width:100%; max-width:1100px;}
+  .crest{display:flex; flex-direction:column; align-items:center; margin-bottom:22px; text-align:center;}
+  .crest .kicker{font-size:11px; color:#7a6635; text-transform:uppercase; letter-spacing:2px; margin:0 0 8px;}
+  .crest h1{font-size:24px; font-weight:400; letter-spacing:1.5px; color:#e8c77a; margin:0; text-transform:uppercase;}
+  .crest p{font-size:12.5px; color:#9c9488; margin:6px 0 0; letter-spacing:.3px;}
+  .panel{background:#132420; border-radius:12px; padding:20px; margin-bottom:16px;}
+  .scroll-wrap{
+    overflow-x:auto;
+    scrollbar-width:thin;
+    scrollbar-color:#7a6635 #132420;
+  }
+  .scroll-wrap::-webkit-scrollbar{height:8px;}
+  .scroll-wrap::-webkit-scrollbar-thumb{background:#7a6635; border-radius:4px;}
+  .scroll-wrap::-webkit-scrollbar-track{background:#132420;}
+  table.tz-grid{border-collapse:separate; border-spacing:0; table-layout:fixed; width:2530px;}
+  table.tz-grid th, table.tz-grid td{width:100px;}
+  table.tz-grid th.utc-col, table.tz-grid td.utc-col{width:130px;}
+  table.tz-grid th{
+    font-weight:700;
+    color:#e8c77a;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    padding:10px 6px;
+    border-bottom:2px solid #7a6635;
+    border-right:1px solid #2a3f37;
+    text-align:center;
+    white-space:nowrap;
+    font-size:12px;
+    background:#132420;
+  }
+  table.tz-grid th .zname{
+    display:block;
+    font-size:11.5px;
+  }
+  table.tz-grid th .off{
+    display:block;
+    font-size:10px;
+    color:#7a6635;
+    font-weight:400;
+    text-transform:none;
+    letter-spacing:0;
+    margin-top:2px;
+  }
+  table.tz-grid th.utc-col{color:#f4efe4; border-bottom:2px solid #e8c77a;}
+  table.tz-grid th.utc-col .zname{font-size:13px;}
+  table.tz-grid th.utc-col .off{color:#9c9488;}
+  table.tz-grid td{
+    font-size:13px;
+    color:#d9d2c2;
+    text-align:center;
+    padding:9px 6px;
+    border-bottom:1px solid #1c2f2a;
+    border-right:1px solid #2a3f37;
+    position:relative;
+    cursor:pointer;
+    white-space:nowrap;
+    background:#132420;
+  }
+  table.tz-grid th:last-child, table.tz-grid td:last-child{border-right:none;}
+  table.tz-grid td.utc-col{
+    font-weight:700;
+    color:#e8c77a;
+  }
+  table.tz-grid tr:last-child td{border-bottom:none;}
+  table.tz-grid tr:hover td{background:#17281f;}
+  table.tz-grid tr:hover td.utc-col{background:#181614;}
+  table.tz-grid tr.row-active td{background:#2a3f37; color:#f4efe4;}
+  table.tz-grid tr.row-active td.utc-col{background:#4a3d1f; color:#e8c77a;}
+
+  th.dup-col, td.dup-col{ border-left:1px dashed #7a6635 !important; border-right:1px dashed #7a6635 !important; }
+
+  table.tz-grid td.sticky-col, table.tz-grid th.sticky-col{
+    position:sticky;
+    left:0;
+    z-index:2;
+    background:#0d1210 !important;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.4);
+  }
+  table.tz-grid th.sticky-col{ z-index:3; }
+
+  .day-tag{
+    display:inline-block;
+    font-size:9px;
+    font-weight:700;
+    color:#c07a5a;
+    margin-left:3px;
+    vertical-align:super;
+  }
+  .note-box{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #2a3f37;
+    margin-bottom:4px;
+  }
+  .note-box p{margin:0; font-size:11.5px; color:#9c9488; line-height:1.6;}
+  .note-box p b{color:#e8c77a;}
+  .home-footer{text-align:center; margin-top:14px; font-size:11px; color:#5a554c;}
+
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
+    background:#101613; border-bottom:1px solid #2a3f37;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .nav-strip{
+    display:flex; gap:8px; width:max-content; margin:0 auto;
+  }
+  .nav-pill{
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+    background:rgba(15,18,16,.88); border:1px solid #6b5f45; color:#cbc3b5;
+    font-size:12.5px; padding:8px 13px; border-radius:20px; transition:all .15s ease;
+    text-decoration:none; font-family:inherit;
+  }
+  .nav-pill:hover{ background:rgba(30,42,36,.95); color:#fff; }
+  .nav-pill.active{ background:#e8c77a; border-color:#e8c77a; color:#2a2416; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="nav-strip"><a href="royal-city-alliance-map.html" class="nav-pill">🏠 Home</a><a href="territory-map.html" class="nav-pill">🗺️ Map</a><a href="do-today.html" class="nav-pill">✅ Do Today</a><a href="game-guides.html" class="nav-pill">🎮 Game Guides</a><a href="event-guides.html" class="nav-pill">🎉 Event Guides</a><a href="sanctuary-upgrades.html" class="nav-pill">🏰 Sanctuary</a><a href="server-time-chart.html" class="nav-pill active">🕐 Server Time</a></div>
+</div>
+
+<div class="wrap">
+
+  <div class="crest">
+    <p class="kicker">Reference Chart</p>
+    <h1>24-Hour Time Zone Chart</h1>
+    <p>APEX &middot; Last Asylum Alliance Strategy &amp; Reference Hub</p>
+  </div>
+
+  <div class="panel">
+    <div class="scroll-wrap">
+      <table class="tz-grid" id="tz-table">
+        <tr>
+          <th class="utc-col sticky-col" id="server-col"><span class="zname">Server Time</span><span class="off">UTC−2</span></th>
+        <th><span class="zname">SST</span><span class="off">UTC−11</span></th>
+        <th><span class="zname">HST</span><span class="off">UTC−10</span></th>
+        <th><span class="zname">AKDT</span><span class="off">UTC−9</span></th>
+        <th><span class="zname">PDT</span><span class="off">UTC−8</span></th>
+        <th><span class="zname">MDT</span><span class="off">UTC−7</span></th>
+        <th><span class="zname">CDT</span><span class="off">UTC−6</span></th>
+        <th><span class="zname">EDT</span><span class="off">UTC−5</span></th>
+        <th><span class="zname">ADT</span><span class="off">UTC−4</span></th>
+        <th><span class="zname">ART</span><span class="off">UTC−3</span></th>
+        <th class="dup-col"><span class="zname">FNT</span><span class="off">UTC−2</span></th>
+        <th><span class="zname">CVT</span><span class="off">UTC−1</span></th>
+        <th><span class="zname">GMT</span><span class="off">UTC</span></th>
+        <th><span class="zname">BST</span><span class="off">UTC+1</span></th>
+        <th><span class="zname">CEST</span><span class="off">UTC+2</span></th>
+        <th><span class="zname">MSK</span><span class="off">UTC+3</span></th>
+        <th><span class="zname">GST</span><span class="off">UTC+4</span></th>
+        <th><span class="zname">PKT</span><span class="off">UTC+5</span></th>
+        <th><span class="zname">BDT</span><span class="off">UTC+6</span></th>
+        <th><span class="zname">ICT</span><span class="off">UTC+7</span></th>
+        <th><span class="zname">CST</span><span class="off">UTC+8</span></th>
+        <th><span class="zname">JST</span><span class="off">UTC+9</span></th>
+        <th><span class="zname">AEST</span><span class="off">UTC+10</span></th>
+        <th><span class="zname">SBT</span><span class="off">UTC+11</span></th>
+        <th><span class="zname">NZST</span><span class="off">UTC+12</span></th>
+        </tr>
+        <tr class="tz-row"><td class="utc-col sticky-col">00:00</td><td>15:00<span class="day-tag">-1</span></td><td>16:00<span class="day-tag">-1</span></td><td>17:00<span class="day-tag">-1</span></td><td>18:00<span class="day-tag">-1</span></td><td>19:00<span class="day-tag">-1</span></td><td>20:00<span class="day-tag">-1</span></td><td>21:00<span class="day-tag">-1</span></td><td>22:00<span class="day-tag">-1</span></td><td>23:00<span class="day-tag">-1</span></td><td class="dup-col">00:00</td><td>01:00</td><td>02:00</td><td>03:00</td><td>04:00</td><td>05:00</td><td>06:00</td><td>07:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">01:00</td><td>16:00<span class="day-tag">-1</span></td><td>17:00<span class="day-tag">-1</span></td><td>18:00<span class="day-tag">-1</span></td><td>19:00<span class="day-tag">-1</span></td><td>20:00<span class="day-tag">-1</span></td><td>21:00<span class="day-tag">-1</span></td><td>22:00<span class="day-tag">-1</span></td><td>23:00<span class="day-tag">-1</span></td><td>00:00</td><td class="dup-col">01:00</td><td>02:00</td><td>03:00</td><td>04:00</td><td>05:00</td><td>06:00</td><td>07:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">02:00</td><td>17:00<span class="day-tag">-1</span></td><td>18:00<span class="day-tag">-1</span></td><td>19:00<span class="day-tag">-1</span></td><td>20:00<span class="day-tag">-1</span></td><td>21:00<span class="day-tag">-1</span></td><td>22:00<span class="day-tag">-1</span></td><td>23:00<span class="day-tag">-1</span></td><td>00:00</td><td>01:00</td><td class="dup-col">02:00</td><td>03:00</td><td>04:00</td><td>05:00</td><td>06:00</td><td>07:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">03:00</td><td>18:00<span class="day-tag">-1</span></td><td>19:00<span class="day-tag">-1</span></td><td>20:00<span class="day-tag">-1</span></td><td>21:00<span class="day-tag">-1</span></td><td>22:00<span class="day-tag">-1</span></td><td>23:00<span class="day-tag">-1</span></td><td>00:00</td><td>01:00</td><td>02:00</td><td class="dup-col">03:00</td><td>04:00</td><td>05:00</td><td>06:00</td><td>07:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">04:00</td><td>19:00<span class="day-tag">-1</span></td><td>20:00<span class="day-tag">-1</span></td><td>21:00<span class="day-tag">-1</span></td><td>22:00<span class="day-tag">-1</span></td><td>23:00<span class="day-tag">-1</span></td><td>00:00</td><td>01:00</td><td>02:00</td><td>03:00</td><td class="dup-col">04:00</td><td>05:00</td><td>06:00</td><td>07:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">05:00</td><td>20:00<span class="day-tag">-1</span></td><td>21:00<span class="day-tag">-1</span></td><td>22:00<span class="day-tag">-1</span></td><td>23:00<span class="day-tag">-1</span></td><td>00:00</td><td>01:00</td><td>02:00</td><td>03:00</td><td>04:00</td><td class="dup-col">05:00</td><td>06:00</td><td>07:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">06:00</td><td>21:00<span class="day-tag">-1</span></td><td>22:00<span class="day-tag">-1</span></td><td>23:00<span class="day-tag">-1</span></td><td>00:00</td><td>01:00</td><td>02:00</td><td>03:00</td><td>04:00</td><td>05:00</td><td class="dup-col">06:00</td><td>07:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td>20:00</td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">07:00</td><td>22:00<span class="day-tag">-1</span></td><td>23:00<span class="day-tag">-1</span></td><td>00:00</td><td>01:00</td><td>02:00</td><td>03:00</td><td>04:00</td><td>05:00</td><td>06:00</td><td class="dup-col">07:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td>20:00</td><td>21:00</td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">08:00</td><td>23:00<span class="day-tag">-1</span></td><td>00:00</td><td>01:00</td><td>02:00</td><td>03:00</td><td>04:00</td><td>05:00</td><td>06:00</td><td>07:00</td><td class="dup-col">08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td>20:00</td><td>21:00</td><td>22:00</td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">09:00</td><td>00:00</td><td>01:00</td><td>02:00</td><td>03:00</td><td>04:00</td><td>05:00</td><td>06:00</td><td>07:00</td><td>08:00</td><td class="dup-col">09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td>20:00</td><td>21:00</td><td>22:00</td><td>23:00</td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">10:00</td><td>01:00</td><td>02:00</td><td>03:00</td><td>04:00</td><td>05:00</td><td>06:00</td><td>07:00</td><td>08:00</td><td>09:00</td><td class="dup-col">10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td>20:00</td><td>21:00</td><td>22:00</td><td>23:00</td><td>00:00<span class="day-tag">+1</span></td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">11:00</td><td>02:00</td><td>03:00</td><td>04:00</td><td>05:00</td><td>06:00</td><td>07:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td class="dup-col">11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td>20:00</td><td>21:00</td><td>22:00</td><td>23:00</td><td>00:00<span class="day-tag">+1</span></td><td>01:00<span class="day-tag">+1</span></td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">12:00</td><td>03:00</td><td>04:00</td><td>05:00</td><td>06:00</td><td>07:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td class="dup-col">12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td>20:00</td><td>21:00</td><td>22:00</td><td>23:00</td><td>00:00<span class="day-tag">+1</span></td><td>01:00<span class="day-tag">+1</span></td><td>02:00<span class="day-tag">+1</span></td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">13:00</td><td>04:00</td><td>05:00</td><td>06:00</td><td>07:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td class="dup-col">13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td>20:00</td><td>21:00</td><td>22:00</td><td>23:00</td><td>00:00<span class="day-tag">+1</span></td><td>01:00<span class="day-tag">+1</span></td><td>02:00<span class="day-tag">+1</span></td><td>03:00<span class="day-tag">+1</span></td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">14:00</td><td>05:00</td><td>06:00</td><td>07:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td class="dup-col">14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td>20:00</td><td>21:00</td><td>22:00</td><td>23:00</td><td>00:00<span class="day-tag">+1</span></td><td>01:00<span class="day-tag">+1</span></td><td>02:00<span class="day-tag">+1</span></td><td>03:00<span class="day-tag">+1</span></td><td>04:00<span class="day-tag">+1</span></td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">15:00</td><td>06:00</td><td>07:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td class="dup-col">15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td>20:00</td><td>21:00</td><td>22:00</td><td>23:00</td><td>00:00<span class="day-tag">+1</span></td><td>01:00<span class="day-tag">+1</span></td><td>02:00<span class="day-tag">+1</span></td><td>03:00<span class="day-tag">+1</span></td><td>04:00<span class="day-tag">+1</span></td><td>05:00<span class="day-tag">+1</span></td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">16:00</td><td>07:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td class="dup-col">16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td>20:00</td><td>21:00</td><td>22:00</td><td>23:00</td><td>00:00<span class="day-tag">+1</span></td><td>01:00<span class="day-tag">+1</span></td><td>02:00<span class="day-tag">+1</span></td><td>03:00<span class="day-tag">+1</span></td><td>04:00<span class="day-tag">+1</span></td><td>05:00<span class="day-tag">+1</span></td><td>06:00<span class="day-tag">+1</span></td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">17:00</td><td>08:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td class="dup-col">17:00</td><td>18:00</td><td>19:00</td><td>20:00</td><td>21:00</td><td>22:00</td><td>23:00</td><td>00:00<span class="day-tag">+1</span></td><td>01:00<span class="day-tag">+1</span></td><td>02:00<span class="day-tag">+1</span></td><td>03:00<span class="day-tag">+1</span></td><td>04:00<span class="day-tag">+1</span></td><td>05:00<span class="day-tag">+1</span></td><td>06:00<span class="day-tag">+1</span></td><td>07:00<span class="day-tag">+1</span></td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">18:00</td><td>09:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td class="dup-col">18:00</td><td>19:00</td><td>20:00</td><td>21:00</td><td>22:00</td><td>23:00</td><td>00:00<span class="day-tag">+1</span></td><td>01:00<span class="day-tag">+1</span></td><td>02:00<span class="day-tag">+1</span></td><td>03:00<span class="day-tag">+1</span></td><td>04:00<span class="day-tag">+1</span></td><td>05:00<span class="day-tag">+1</span></td><td>06:00<span class="day-tag">+1</span></td><td>07:00<span class="day-tag">+1</span></td><td>08:00<span class="day-tag">+1</span></td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">19:00</td><td>10:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td class="dup-col">19:00</td><td>20:00</td><td>21:00</td><td>22:00</td><td>23:00</td><td>00:00<span class="day-tag">+1</span></td><td>01:00<span class="day-tag">+1</span></td><td>02:00<span class="day-tag">+1</span></td><td>03:00<span class="day-tag">+1</span></td><td>04:00<span class="day-tag">+1</span></td><td>05:00<span class="day-tag">+1</span></td><td>06:00<span class="day-tag">+1</span></td><td>07:00<span class="day-tag">+1</span></td><td>08:00<span class="day-tag">+1</span></td><td>09:00<span class="day-tag">+1</span></td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">20:00</td><td>11:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td class="dup-col">20:00</td><td>21:00</td><td>22:00</td><td>23:00</td><td>00:00<span class="day-tag">+1</span></td><td>01:00<span class="day-tag">+1</span></td><td>02:00<span class="day-tag">+1</span></td><td>03:00<span class="day-tag">+1</span></td><td>04:00<span class="day-tag">+1</span></td><td>05:00<span class="day-tag">+1</span></td><td>06:00<span class="day-tag">+1</span></td><td>07:00<span class="day-tag">+1</span></td><td>08:00<span class="day-tag">+1</span></td><td>09:00<span class="day-tag">+1</span></td><td>10:00<span class="day-tag">+1</span></td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">21:00</td><td>12:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td>20:00</td><td class="dup-col">21:00</td><td>22:00</td><td>23:00</td><td>00:00<span class="day-tag">+1</span></td><td>01:00<span class="day-tag">+1</span></td><td>02:00<span class="day-tag">+1</span></td><td>03:00<span class="day-tag">+1</span></td><td>04:00<span class="day-tag">+1</span></td><td>05:00<span class="day-tag">+1</span></td><td>06:00<span class="day-tag">+1</span></td><td>07:00<span class="day-tag">+1</span></td><td>08:00<span class="day-tag">+1</span></td><td>09:00<span class="day-tag">+1</span></td><td>10:00<span class="day-tag">+1</span></td><td>11:00<span class="day-tag">+1</span></td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">22:00</td><td>13:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td>20:00</td><td>21:00</td><td class="dup-col">22:00</td><td>23:00</td><td>00:00<span class="day-tag">+1</span></td><td>01:00<span class="day-tag">+1</span></td><td>02:00<span class="day-tag">+1</span></td><td>03:00<span class="day-tag">+1</span></td><td>04:00<span class="day-tag">+1</span></td><td>05:00<span class="day-tag">+1</span></td><td>06:00<span class="day-tag">+1</span></td><td>07:00<span class="day-tag">+1</span></td><td>08:00<span class="day-tag">+1</span></td><td>09:00<span class="day-tag">+1</span></td><td>10:00<span class="day-tag">+1</span></td><td>11:00<span class="day-tag">+1</span></td><td>12:00<span class="day-tag">+1</span></td></tr>
+      <tr class="tz-row"><td class="utc-col sticky-col">23:00</td><td>14:00</td><td>15:00</td><td>16:00</td><td>17:00</td><td>18:00</td><td>19:00</td><td>20:00</td><td>21:00</td><td>22:00</td><td class="dup-col">23:00</td><td>00:00<span class="day-tag">+1</span></td><td>01:00<span class="day-tag">+1</span></td><td>02:00<span class="day-tag">+1</span></td><td>03:00<span class="day-tag">+1</span></td><td>04:00<span class="day-tag">+1</span></td><td>05:00<span class="day-tag">+1</span></td><td>06:00<span class="day-tag">+1</span></td><td>07:00<span class="day-tag">+1</span></td><td>08:00<span class="day-tag">+1</span></td><td>09:00<span class="day-tag">+1</span></td><td>10:00<span class="day-tag">+1</span></td><td>11:00<span class="day-tag">+1</span></td><td>12:00<span class="day-tag">+1</span></td><td>13:00<span class="day-tag">+1</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="note-box">
+    <p><b>Heads up:</b> Server Time is fixed at UTC&minus;2 and is frozen as the first column — it stays visible no matter how far you scroll. Zone abbreviations reflect current Daylight Saving Time where applicable. Scroll right to compare any zone against Server Time. Click any row to highlight it across all time zones. <span class="day-tag" style="margin-left:0;">-1</span> / <span class="day-tag" style="margin-left:0;">+1</span> marks a time that falls on the previous or next day relative to Server Time.</p>
+  </div>
+
+  <div class="home-footer">APEX &middot; Last Asylum</div>
+
+</div>
+<script>
+  const rows = document.querySelectorAll('#tz-table tr.tz-row');
+  rows.forEach(row => {
+    row.addEventListener('click', () => {
+      const isActive = row.classList.contains('row-active');
+      rows.forEach(r => r.classList.remove('row-active'));
+      if (!isActive) row.classList.add('row-active');
+    });
+  });
+</script>
+
+</body>
+</html>

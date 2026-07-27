@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Undead Siege — APEX</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#132420">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Royal City">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+*{box-sizing:border-box;}
+html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#0d1210;
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+    color:#f4efe4;
+    display:flex; flex-direction:column; align-items:center; padding:0 0 32px;
+  }
+  .wrap{
+    width:100%;
+    max-width:460px;
+  }
+  .crest{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-bottom:26px;
+    text-align:center;
+  }
+  .crest h1{
+    font-size:24px;
+    font-weight:400;
+    letter-spacing:1.5px;
+    color:#e8c77a;
+    margin:0;
+    text-transform:uppercase;
+  }
+  .crest .kicker{
+    font-size:11px;
+    color:#7a6635;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    margin:0 0 8px;
+  }
+  .crest p{
+    font-size:12.5px;
+    color:#9c9488;
+    margin:6px 0 0;
+    letter-spacing:.3px;
+  }
+  .panel{
+    background:#132420;
+    border-radius:12px;
+    padding:20px 20px 6px;
+    margin-bottom:18px;
+  }
+  .section-label{
+    font-size:11px;
+    color:#6b6355;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-weight:700;
+    margin:0 0 12px 2px;
+  }
+  .muted{
+    font-size:12.5px;
+    color:#9c9488;
+    line-height:1.6;
+    margin:0 0 14px;
+  }
+  .lore{
+    font-size:13px;
+    color:#d9d2c2;
+    line-height:1.7;
+    font-style:italic;
+    margin:0 0 4px;
+  }
+
+  .steps{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .step{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:8px 2px;
+  }
+  .step-num{
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    border:1px solid #7a6635;
+    color:#e8c77a;
+    font-size:11px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .step p{
+    margin:0;
+    font-size:12.5px;
+    color:#d9d2c2;
+    line-height:1.5;
+  }
+  .step b{color:#f4efe4;}
+
+  .rule-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .rule-card{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #2a3f37;
+  }
+  .rule-card .title{
+    font-size:12px;
+    font-weight:700;
+    color:#e8c77a;
+    margin-bottom:4px;
+  }
+  .rule-card p{
+    margin:0;
+    font-size:11.5px;
+    color:#9c9488;
+    line-height:1.5;
+  }
+
+  .callout{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #7a6635;
+    margin-bottom:14px;
+  }
+  .callout p{
+    margin:0;
+    font-size:12.5px;
+    color:#e8c77a;
+    line-height:1.5;
+    font-weight:700;
+  }
+
+  .check-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin:0 0 14px;
+  }
+  .check-item{
+    display:flex;
+    gap:8px;
+    font-size:12.5px;
+    color:#d9d2c2;
+    line-height:1.5;
+  }
+  .check-item span.c{
+    color:#e8c77a;
+    font-weight:700;
+    flex-shrink:0;
+  }
+
+  .divider-thin{
+    height:1px;
+    background:#2a3f37;
+    margin:0 0 18px;
+  }
+  .signoff{
+    text-align:center;
+    font-size:13px;
+    color:#e8c77a;
+    font-weight:700;
+    letter-spacing:.3px;
+    margin:0 0 4px;
+  }
+  .home-footer{
+    text-align:center;
+    margin-top:18px;
+    font-size:11px;
+    color:#5a554c;
+  }
+
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#0d1210;
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+    color:#f4efe4;
+    display:flex;
+    justify-content:center;
+    padding:32px 16px;
+  }
+  .wrap{
+    width:100%;
+    max-width:460px;
+  }
+  .crest{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-bottom:26px;
+    text-align:center;
+  }
+  .crest h1{
+    font-size:22px;
+    font-weight:400;
+    letter-spacing:1px;
+    color:#e8c77a;
+    margin:0;
+    text-transform:uppercase;
+  }
+  .crest .kicker{
+    font-size:11px;
+    color:#7a6635;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    margin:0 0 8px;
+  }
+  .crest p{
+    font-size:12.5px;
+    color:#9c9488;
+    margin:6px 0 0;
+    letter-spacing:.3px;
+  }
+  .panel{
+    background:#132420;
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:18px;
+  }
+  .section-label{
+    font-size:11px;
+    color:#6b6355;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-weight:700;
+    margin:0 0 12px 2px;
+  }
+  .muted{
+    font-size:12.5px;
+    color:#9c9488;
+    line-height:1.6;
+    margin:0 0 4px;
+  }
+
+  .mistake-card{
+    background:#132420;
+    border-radius:12px;
+    padding:18px 20px;
+    margin-bottom:14px;
+    border-left:3px solid #c07a5a;
+  }
+  .mistake-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .mistake-num{
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    background:#c07a5a;
+    color:#1c1410;
+    font-size:13px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .mistake-title{
+    font-size:14px;
+    font-weight:700;
+    color:#f4efe4;
+    letter-spacing:.2px;
+  }
+  .mistake-title b{color:#c07a5a;}
+  .mistake-card p{
+    margin:0 0 8px;
+    font-size:12.5px;
+    color:#9c9488;
+    line-height:1.6;
+  }
+  .fix-line{
+    font-size:12px;
+    color:#e8c77a;
+    font-weight:700;
+    line-height:1.5;
+    margin:0;
+  }
+
+  .tag-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .tag-pill{
+    background:#0d1210;
+    border:1px solid #2a3f37;
+    border-radius:20px;
+    padding:10px 14px;
+    font-size:11.5px;
+    color:#d9d2c2;
+    text-align:center;
+    font-weight:700;
+  }
+
+  .callout{
+    border-radius:10px;
+    padding:14px 16px;
+    background:#0d1210;
+    border:1px solid #7a6635;
+    margin-bottom:4px;
+  }
+  .callout p{
+    margin:0;
+    font-size:12.5px;
+    color:#d9d2c2;
+    line-height:1.65;
+  }
+  .callout p b{color:#e8c77a;}
+
+  .divider-thin{
+    height:1px;
+    background:#2a3f37;
+    margin:0 0 18px;
+  }
+  .signoff{
+    text-align:center;
+    font-size:13px;
+    color:#e8c77a;
+    font-weight:700;
+    letter-spacing:.3px;
+    margin:0 0 4px;
+  }
+  .home-footer{
+    text-align:center;
+    margin-top:18px;
+    font-size:11px;
+    color:#5a554c;
+  }
+
+
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
+    background:#101613; border-bottom:1px solid #2a3f37;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .nav-strip{
+    display:flex; gap:8px; width:max-content; margin:0 auto;
+  }
+  .nav-pill{
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+    background:rgba(15,18,16,.88); border:1px solid #6b5f45; color:#cbc3b5;
+    font-size:12.5px; padding:8px 13px; border-radius:20px; transition:all .15s ease;
+    text-decoration:none; font-family:inherit;
+  }
+  .nav-pill:hover{ background:rgba(30,42,36,.95); color:#fff; }
+  .nav-pill.active{ background:#e8c77a; border-color:#e8c77a; color:#2a2416; font-weight:700; }
+
+.section-divider-line{ width:100%; max-width:460px; height:1px; background:#2a3f37; margin:8px 0 22px; }
+.sub-kicker{ width:100%; max-width:460px; padding:0 0 4px; font-size:11px; color:#7a6635; text-transform:uppercase; letter-spacing:2px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="nav-strip"><a href="royal-city-alliance-map.html" class="nav-pill">🏠 Home</a><a href="territory-map.html" class="nav-pill">🗺️ Map</a><a href="do-today.html" class="nav-pill">✅ Do Today</a><a href="game-guides.html" class="nav-pill">🎮 Game Guides</a><a href="event-guides.html" class="nav-pill active">🎉 Event Guides</a><a href="sanctuary-upgrades.html" class="nav-pill">🏰 Sanctuary</a><a href="server-time-chart.html" class="nav-pill">🕐 Server Time</a></div>
+</div>
+<div class="wrap">
+  <div class="crest">
+    <p class="kicker">Alliance Event Guide</p>
+    <h1>Undead Siege</h1>
+    <p style="font-size:12.5px;color:#9c9488;margin:6px 0 0;letter-spacing:.3px;">APEX &middot; Last Asylum Alliance Strategy &amp; Reference Hub</p>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">The threat</div>
+    <p class="lore">The Death Prison, shrouded in mist, has fallen to plague. Inmates and guards have become savage undead, ready to assault your territories, Doctors.</p>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">How it starts</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><p>Alliance members complete <b>Falcon Quests</b> to gather clues and help locate the Death Prison.</p></div>
+      <div class="step"><div class="step-num">2</div><p>Once enough clues are gathered, <b>R5/R4 leaders</b> dispatch falcons to search for the prison.</p></div>
+      <div class="step"><div class="step-num">3</div><p>Leaders choose a <b>difficulty</b> based on the Alliance's strength.</p></div>
+      <div class="step"><div class="step-num">4</div><p>Confirm timing with members and schedule the final challenge.</p></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Defense</div>
+    <div class="rule-grid">
+      <div class="rule-card">
+        <div class="title">Shields don't work</div>
+        <p>Shields cannot withstand undead attacks.</p>
+      </div>
+      <div class="rule-card">
+        <div class="title">Defend the walls</div>
+        <p>Deploy defensive troops on your Walls.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Rewards</div>
+    <div class="callout" style="margin-bottom:4px;">
+      <p>Personal and Alliance rewards are distributed based on successful defense waves. The more waves you defend, the greater your rewards.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">R5 / R4 checklist</div>
+    <div class="check-list">
+      <div class="check-item"><span class="c">＋</span><span>Coordinate members to complete Falcon Quests for clues.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Stockpile resources ahead of the siege.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Confirm battle times with the Alliance.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Choose difficulty based on Alliance strength.</span></div>
+      <div class="check-item"><span class="c">＋</span><span>Lead the Alliance to face the Undead Siege.</span></div>
+    </div>
+  </div>
+
+  <div class="divider-thin"></div>
+  <p class="signoff">Man the walls. Defend every wave.</p>
+
+  <div class="section-divider-line"></div>
+  <div class="sub-kicker">Top 7 Mistakes to Avoid</div>
+
+  <div class="panel">
+    <div class="section-label">Why This Matters</div>
+    <p class="muted">Undead Siege is one of the most teamwork-focused events in the game. Success isn't just about power — it depends on preparation, coordination, and avoiding these seven common mistakes.</p>
+  </div>
+
+  <div class="mistake-card">
+    <div class="mistake-head">
+      <div class="mistake-num">1</div>
+      <div class="mistake-title">Forgetting to <b>Station Heroes</b></div>
+    </div>
+    <p>Even with strong troops, your defense is far weaker without heroes on the wall.</p>
+    <p class="fix-line">Fix: Before the event begins, double-check your strongest heroes and best squad are assigned to your wall.</p>
+  </div>
+
+  <div class="mistake-card">
+    <div class="mistake-head">
+      <div class="mistake-num">2</div>
+      <div class="mistake-title">Ignoring <b>Wall Defense</b></div>
+    </div>
+    <p>Your city won't defend itself automatically — the wall is your primary defense.</p>
+    <p class="fix-line">Fix: Place your strongest squad on the wall and make sure it's fully prepared before the first wave starts.</p>
+  </div>
+
+  <div class="mistake-card">
+    <div class="mistake-head">
+      <div class="mistake-num">3</div>
+      <div class="mistake-title">Starting Without <b>Preparation</b></div>
+    </div>
+    <p>The event can't begin until your alliance fills the Clue progress bar to 100%.</p>
+    <p class="fix-line">Fix: Collect clues ahead of time through Falcon Quests and other activities before scheduling the event.</p>
+  </div>
+
+  <div class="mistake-card">
+    <div class="mistake-head">
+      <div class="mistake-num">4</div>
+      <div class="mistake-title">Underestimating <b>Enemy Mutations</b></div>
+    </div>
+    <p>Higher difficulties bring mutated enemies with unique abilities that many players ignore, focusing only on standard zombie waves.</p>
+    <p class="fix-line">Fix: Learn what each mutation does and prepare your defense accordingly.</p>
+  </div>
+
+  <div class="mistake-card">
+    <div class="mistake-head">
+      <div class="mistake-num">5</div>
+      <div class="mistake-title">Not Reinforcing <b>Alliance Members</b></div>
+    </div>
+    <p>Struggling allies fall faster without support, which caps how many waves the whole alliance can clear.</p>
+    <p class="fix-line">Fix: Send reinforcements to weaker members — more alliance waves means better rewards for everyone.</p>
+  </div>
+
+  <div class="mistake-card">
+    <div class="mistake-head">
+      <div class="mistake-num">6</div>
+      <div class="mistake-title">Not Having Enough <b>Troops</b></div>
+    </div>
+    <p>A half-empty squad leaves gaps in your wall's defense.</p>
+    <p class="fix-line">Fix: Make sure you have enough healthy troops to fill your squads — a full squad makes a huge difference.</p>
+  </div>
+
+  <div class="mistake-card" style="margin-bottom:18px;">
+    <div class="mistake-head">
+      <div class="mistake-num">7</div>
+      <div class="mistake-title">Logging Off Without <b>Setting Your Defense</b></div>
+    </div>
+    <p>You can still earn rewards while offline, but only if your defense is actually ready.</p>
+    <p class="fix-line">Fix: Station your best heroes and troops before you log off.</p>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Success Comes From</div>
+    <div class="tag-grid">
+      <div class="tag-pill">Preparation</div>
+      <div class="tag-pill">Teamwork</div>
+      <div class="tag-pill">Strong Defense</div>
+      <div class="tag-pill">Smart Strategy</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p>Undead Siege rewards <b>teamwork</b> more than individual strength. Prepare your wall, station heroes, reinforce teammates, keep your squads full, and coordinate with your alliance. Avoiding these 7 mistakes will help your alliance reach higher waves and unlock better milestone rewards.</p>
+  </div>
+
+  <div class="divider-thin"></div>
+  <p class="signoff">Prepare together. Defend together. Win together.</p>
+
+  <div class="home-footer">APEX &middot; Last Asylum</div>
+</div>
+</body>
+</html>

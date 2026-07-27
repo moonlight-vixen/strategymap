@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Diamond Guide — APEX</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#132420">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Royal City">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#0d1210;
+    font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+    color:#f4efe4;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:0 0 32px;
+  }
+  .wrap{
+    margin-top:24px;
+    padding:0 16px;
+    width:100%;
+    max-width:460px;
+  }
+  .crest{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-bottom:26px;
+    text-align:center;
+  }
+  .crest h1{
+    font-size:24px;
+    font-weight:400;
+    letter-spacing:1.5px;
+    color:#e8c77a;
+    margin:0;
+    text-transform:uppercase;
+  }
+  .crest .kicker{
+    font-size:11px;
+    color:#7a6635;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    margin:0 0 8px;
+  }
+  .crest p{
+    font-size:12.5px;
+    color:#9c9488;
+    margin:6px 0 0;
+    letter-spacing:.3px;
+  }
+  .part-label{
+    text-align:center;
+    font-size:12px;
+    color:#7a6635;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    font-weight:700;
+    margin:6px 0 14px;
+  }
+  .panel{
+    background:#132420;
+    border-radius:12px;
+    padding:20px 20px 6px;
+    margin-bottom:18px;
+  }
+  .section-label{
+    font-size:11px;
+    color:#6b6355;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-weight:700;
+    margin:0 0 12px 2px;
+  }
+  .muted{
+    font-size:12.5px;
+    color:#9c9488;
+    line-height:1.6;
+    margin:0 0 14px;
+  }
+
+  .method-tag{
+    display:block;
+    width:100%;
+    text-align:left;
+    box-sizing:border-box;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.5px;
+    color:#2a2416;
+    background:#e8c77a;
+    padding:6px 12px;
+    border-radius:8px;
+    margin-bottom:8px;
+  }
+  .method{margin-bottom:16px;}
+  .method:last-child{margin-bottom:4px;}
+  .method-focus{
+    font-size:11.5px;
+    color:#9c9488;
+    margin:0 0 8px;
+    font-style:italic;
+  }
+  .check-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin:0 0 4px;
+  }
+  .check-item{
+    display:flex;
+    gap:8px;
+    font-size:12px;
+    color:#d9d2c2;
+    line-height:1.5;
+  }
+  .check-item span.c{
+    color:#e8c77a;
+    font-weight:700;
+    flex-shrink:0;
+  }
+
+  .rule-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .rule-card{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #2a3f37;
+  }
+  .rule-card .title{
+    font-size:12px;
+    font-weight:700;
+    color:#e8c77a;
+    margin-bottom:4px;
+  }
+  .rule-card p{
+    margin:0;
+    font-size:11.5px;
+    color:#9c9488;
+    line-height:1.5;
+  }
+
+  .tag-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .tag-pill{
+    background:#0d1210;
+    border:1px solid #2a3f37;
+    border-radius:20px;
+    padding:10px 14px;
+    font-size:11.5px;
+    color:#d9d2c2;
+    text-align:center;
+  }
+
+  .detail-card{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #2a3f37;
+    margin-bottom:10px;
+  }
+  .detail-card .title{
+    font-size:12.5px;
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .detail-card.gold .title{color:#e8c77a;}
+  .detail-card.amber .title{color:#d99a4e;}
+  .detail-card.rust .title{color:#c07a5a;}
+  .detail-card p{
+    margin:0;
+    font-size:11.5px;
+    color:#9c9488;
+    line-height:1.5;
+  }
+  .detail-card .note{
+    margin-top:6px;
+    font-size:11px;
+    color:#7a6635;
+    font-style:italic;
+  }
+
+  .callout{
+    border-radius:10px;
+    padding:12px 14px;
+    background:#0d1210;
+    border:1px solid #7a6635;
+    margin-bottom:14px;
+  }
+  .callout p{
+    margin:0;
+    font-size:12.5px;
+    color:#e8c77a;
+    line-height:1.5;
+    font-weight:700;
+    text-align:center;
+  }
+  .callout.rust-border{border-color:#c07a5a;}
+  .callout.rust-border p{color:#c07a5a;}
+
+  .divider-thin{
+    height:1px;
+    background:#2a3f37;
+    margin:0 0 18px;
+  }
+  .signoff{
+    text-align:center;
+    font-size:13px;
+    color:#e8c77a;
+    font-weight:700;
+    letter-spacing:.3px;
+    margin:0 0 4px;
+  }
+  .home-footer{
+    text-align:center;
+    margin-top:18px;
+    font-size:11px;
+    color:#5a554c;
+  }
+
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
+    background:#101613; border-bottom:1px solid #2a3f37;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .nav-strip{
+    display:flex; gap:8px; width:max-content; margin:0 auto;
+  }
+  .nav-pill{
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+    background:rgba(15,18,16,.88); border:1px solid #6b5f45; color:#cbc3b5;
+    font-size:12.5px; padding:8px 13px; border-radius:20px; transition:all .15s ease;
+    text-decoration:none; font-family:inherit;
+  }
+  .nav-pill:hover{ background:rgba(30,42,36,.95); color:#fff; }
+  .nav-pill.active{ background:#e8c77a; border-color:#e8c77a; color:#2a2416; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="nav-strip"><a href="royal-city-alliance-map.html" class="nav-pill">🏠 Home</a><a href="territory-map.html" class="nav-pill">🗺️ Map</a><a href="do-today.html" class="nav-pill">✅ Do Today</a><a href="game-guides.html" class="nav-pill active">🎮 Game Guides</a><a href="event-guides.html" class="nav-pill">🎉 Event Guides</a><a href="sanctuary-upgrades.html" class="nav-pill">🏰 Sanctuary</a><a href="server-time-chart.html" class="nav-pill">🕐 Server Time</a></div>
+</div>
+
+<div class="wrap">
+
+  <div class="crest">
+    <p class="kicker">Earning &amp; spending guide</p>
+    <h1>Diamond Guide</h1>
+    <p>APEX &middot; Last Asylum Alliance Strategy &amp; Reference Hub</p>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Overview</div>
+    <p class="muted">Diamonds fund speedups, heroes, growth, and more. Free methods stack up faster than you'd think if you're consistent about them.</p>
+  </div>
+
+  <p class="part-label">Part 1 &middot; How to get diamonds</p>
+
+  <div class="panel">
+    <div class="section-label">Free methods</div>
+
+    <div class="method">
+      <div class="method-tag">1. Daily Tasks</div>
+      <p class="method-focus">Most consistent</p>
+      <div class="check-list">
+        <div class="check-item"><span class="c">＋</span><span>Always complete all daily missions.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Those small diamond rewards stack quickly.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Treat it as a non-negotiable daily habit.</span></div>
+      </div>
+    </div>
+
+    <div class="method">
+      <div class="method-tag">2. Events</div>
+      <p class="method-focus">Biggest payouts</p>
+      <div class="check-list">
+        <div class="check-item"><span class="c">＋</span><span>Focus on Alliance Duel phases, Hunt Battle, Elixir Scramble, and Kingdom War.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Even partial participation earns diamonds.</span></div>
+      </div>
+    </div>
+
+    <div class="method">
+      <div class="method-tag">3. Achievement / Progress</div>
+      <div class="check-list">
+        <div class="check-item"><span class="c">＋</span><span>Check Growth tabs, milestone rewards, and hidden achievements.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>People forget these and leave diamonds sitting there.</span></div>
+      </div>
+    </div>
+
+    <div class="method">
+      <div class="method-tag">4. Alliance Gifts</div>
+      <div class="check-list">
+        <div class="check-item"><span class="c">＋</span><span>Stay active when teammates purchase packs.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Claim all gifts — passive diamonds over time.</span></div>
+      </div>
+    </div>
+
+    <div class="method">
+      <div class="method-tag">5. Map Exploration</div>
+      <div class="check-list">
+        <div class="check-item"><span class="c">＋</span><span>Click random things on the map and do PvE content.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Small amounts, but consistent — every little bit counts.</span></div>
+      </div>
+    </div>
+
+    <div class="method">
+      <div class="method-tag">6. Mail &amp; System Rewards</div>
+      <div class="check-list">
+        <div class="check-item"><span class="c">＋</span><span>Check mail constantly — dev gifts, compensation, and event rewards hide there.</span></div>
+        <div class="check-item"><span class="c">＋</span><span>Don't let free diamonds expire.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Bonus tips</div>
+    <div class="rule-grid">
+      <div class="rule-card">
+        <div class="title">Never skip daily tasks</div>
+        <p>Small daily wins add up to steady diamonds.</p>
+      </div>
+      <div class="rule-card">
+        <div class="title">Play smart during events</div>
+        <p>Join, contribute, claim rewards.</p>
+      </div>
+      <div class="rule-card">
+        <div class="title">Use diamonds wisely</div>
+        <p>Save for heroes, events, and growth.</p>
+      </div>
+      <div class="rule-card">
+        <div class="title">Be active every day</div>
+        <p>Active players always earn more.</p>
+      </div>
+      <div class="rule-card" style="grid-column:1 / -1;">
+        <div class="title">Join a strong alliance</div>
+        <p>More alliance activity means more alliance gifts.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Best places to spend</div>
+    <div class="tag-grid">
+      <div class="tag-pill">VIP Points</div>
+      <div class="tag-pill">Hero Summons</div>
+      <div class="tag-pill">Event Item Packs</div>
+      <div class="tag-pill">Building / Research Speedups</div>
+      <div class="tag-pill" style="grid-column:1 / -1;">Directly During Important Events</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p>Diamonds won't come all at once, but daily discipline builds a huge advantage. Stay consistent.</p>
+  </div>
+
+  <div class="divider-thin"></div>
+  <p class="part-label" style="margin-top:0;">Part 2 &middot; Don't waste your diamonds</p>
+
+  <div class="panel">
+    <div class="section-label">Best uses — high value, big impact</div>
+
+    <div class="detail-card gold">
+      <div class="title">Shields</div>
+      <p>Your #1 priority. Protect your resources, hospital, and progress. Always keep backup shields ready.</p>
+    </div>
+    <div class="detail-card gold">
+      <div class="title">Event Stamina</div>
+      <p>Use during big events (Alliance Duel, Hero Events, etc.). More stamina means more points and better rewards.</p>
+    </div>
+    <div class="detail-card gold">
+      <div class="title">Important Event Participation</div>
+      <p>Spend to unlock, rank up, or complete event milestones for high-value rewards. Timing is everything.</p>
+    </div>
+    <div class="detail-card gold">
+      <div class="title">Strategic Teleports</div>
+      <p>Use for territory, dungeons, boss moves, or during Kingdom War. Smart moves win wars.</p>
+    </div>
+    <div class="detail-card gold">
+      <div class="title">VIP progression</div>
+      <p>Early VIP levels give excellent daily bonuses. Small steps daily mean huge long-term value.</p>
+    </div>
+    <div class="detail-card gold">
+      <div class="title">High-Value Limited Events</div>
+      <p>Look for limited-time offers, discount packs, and event bundles with the best diamond value.</p>
+    </div>
+    <div class="detail-card gold" style="margin-bottom:0;">
+      <div class="title">Emergency War Mobility</div>
+      <p>Save diamonds for emergencies during war — relocating, reinforcing, countering threats.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Only sometimes — situational, be careful</div>
+
+    <div class="detail-card amber">
+      <div class="title">Speedups</div>
+      <p>Okay to use if you're close to a big event or need a boost.</p>
+      <p class="note">Don't speed everything. Be selective.</p>
+    </div>
+    <div class="detail-card amber">
+      <div class="title">Shop Refreshes</div>
+      <p>Can be worth it during events or if you're hunting for key items.</p>
+      <p class="note">Set a limit. Don't refresh endlessly.</p>
+    </div>
+    <div class="detail-card amber">
+      <div class="title">Extra March Slots</div>
+      <p>Helpful if you're very active and need more marches for gathering or war.</p>
+      <p class="note">Get as needed — not a priority for everyone.</p>
+    </div>
+    <div class="detail-card amber">
+      <div class="title">Gear Materials</div>
+      <p>Good if you're actively working on hero/gear upgrades.</p>
+      <p class="note">Buy only what you truly need.</p>
+    </div>
+    <div class="detail-card amber" style="margin-bottom:0;">
+      <div class="title">Late VIP Levels</div>
+      <p>Early VIP levels are great value. Higher levels become very expensive for smaller gains.</p>
+      <p class="note">Worth it only if you're a heavy spender.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Biggest wastes — don't do it</div>
+
+    <div class="detail-card rust">
+      <div class="title">Random Spins</div>
+      <p>Low chance, high regret. If it's not a target event, don't spin "just because." Commit or skip.</p>
+    </div>
+    <div class="detail-card rust">
+      <div class="title">Speeding Everything</div>
+      <p>Instant speeds feel good now, but they slow your growth long-term. Patience builds power.</p>
+    </div>
+    <div class="detail-card rust">
+      <div class="title">Low-Value Shop Items</div>
+      <p>Don't buy basic resources, common items, or random materials with diamonds. Terrible value.</p>
+    </div>
+    <div class="detail-card rust">
+      <div class="title">Reviving Bad Attacks</div>
+      <p>Don't bring back a losing fight. It's almost always a waste of diamonds.</p>
+    </div>
+    <div class="detail-card rust">
+      <div class="title">Panic Spending During War</div>
+      <p>Reacting emotionally leads to poor decisions. Stay calm. Plan ahead.</p>
+    </div>
+    <div class="detail-card rust" style="margin-bottom:0;">
+      <div class="title">Cosmetic-Only Purchases (Early Game)</div>
+      <p>Looks are fun, but power is what wins wars. Save cosmetics for later.</p>
+    </div>
+  </div>
+
+  <div class="callout rust-border">
+    <p>The golden rule: if it doesn't help your growth, war, or long-term power — don't spend it.</p>
+  </div>
+
+  <div class="divider-thin"></div>
+  <p class="signoff">Small actions today. Massive power tomorrow.</p>
+  <div class="home-footer">APEX &middot; Last Asylum</div>
+
+</div>
+
+</body>
+</html>

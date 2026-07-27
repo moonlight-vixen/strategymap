@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Skin Buffs — APEX</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#132420">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Royal City">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+*{box-sizing:border-box;}
+html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+
+*{box-sizing:border-box;}
+body{ flex-direction:column; align-items:center;
+  margin:0;
+  background:#0d1210;
+  font-family:'Century Gothic','CenturyGothic','Apple Gothic','Futura','Trebuchet MS',sans-serif;
+  color:#f4efe4;
+  display:flex; padding:0 0 32px;
+}
+.wrap{width:100%; max-width:460px;}
+.crest{display:flex; flex-direction:column; align-items:center; margin-bottom:20px; text-align:center;}
+.crest .kicker{font-size:11px; color:#7a6635; text-transform:uppercase; letter-spacing:2px; margin:0 0 8px;}
+.crest p{font-size:12.5px; color:#9c9488; margin:6px 0 0; letter-spacing:.3px;}
+.card{background:#132420; border-radius:14px; overflow:hidden; margin-bottom:18px;}
+.card-img-wrap{width:100%; background:#0d1210;}
+.card-img-wrap img{width:100%; height:auto; display:block;}
+.card-body{ flex-direction:column; align-items:center;padding:20px;}
+.skin-title{font-size:22px; font-weight:400; letter-spacing:1px; color:#e8c77a; margin:0 0 2px; text-transform:uppercase;}
+.skin-tag{font-size:11px; color:#7a6635; text-transform:uppercase; letter-spacing:2px; margin:0 0 18px;}
+.section-label{font-size:11px; color:#6b6355; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin:0 0 10px 2px;}
+.stat-row{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;}
+.stat-card{border-radius:10px; padding:12px; background:#0d1210; border:1px solid #2a3f37;}
+.stat-card .kind{font-size:10px; color:#7a6635; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:6px;}
+.stat-card .buff-row{display:flex; justify-content:space-between; font-size:12px; color:#d9d2c2; margin-bottom:2px;}
+.stat-card .buff-row b{color:#e8c77a;}
+.check-list{display:flex; flex-direction:column; gap:6px; margin:0 0 10px;}
+.check-item{display:flex; gap:8px; font-size:12px; color:#d9d2c2; line-height:1.5;}
+.check-item span.c{color:#e8c77a; font-weight:700; flex-shrink:0;}
+.note{font-size:11px; color:#7a6635; font-style:italic; line-height:1.5; margin:0 0 16px;}
+.avail-row{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+.avail-dot{width:8px; height:8px; border-radius:50%; background:#c07a5a; flex-shrink:0;}
+.avail-status{font-size:13px; font-weight:700; color:#c07a5a;}
+.return-list{display:flex; flex-direction:column; gap:4px; margin:0 0 16px;}
+.return-item{font-size:11.5px; color:#9c9488; line-height:1.5; padding-left:14px; position:relative;}
+.return-item:before{content:"–"; position:absolute; left:0; color:#5a554c;}
+.facts{width:100%; border-collapse:collapse; margin-bottom:4px;}
+.facts td{font-size:11.5px; padding:6px 0; border-bottom:1px solid #1c2f2a; vertical-align:top;}
+.facts td.k{color:#6b6355; text-transform:uppercase; letter-spacing:.5px; font-size:10px; font-weight:700; width:38%;}
+.facts td.v{color:#d9d2c2;}
+.facts tr:last-child td{border-bottom:none;}
+.home-footer{text-align:center; margin-top:4px; font-size:11px; color:#5a554c;}
+
+
+
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
+    background:#101613; border-bottom:1px solid #2a3f37;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .nav-strip{
+    display:flex; gap:8px; width:max-content; margin:0 auto;
+  }
+  .nav-pill{
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+    background:rgba(15,18,16,.88); border:1px solid #6b5f45; color:#cbc3b5;
+    font-size:12.5px; padding:8px 13px; border-radius:20px; transition:all .15s ease;
+    text-decoration:none; font-family:inherit;
+  }
+  .nav-pill:hover{ background:rgba(30,42,36,.95); color:#fff; }
+  .nav-pill.active{ background:#e8c77a; border-color:#e8c77a; color:#2a2416; font-weight:700; }
+
+.page-head{ width:100%; max-width:460px; padding:20px 16px 4px; text-align:center; }
+.page-head .kicker{ font-size:11px; color:#7a6635; text-transform:uppercase; letter-spacing:2px; margin:0 0 6px; }
+.page-head h1{ font-size:22px; font-weight:400; letter-spacing:1px; color:#e8c77a; margin:0; text-transform:uppercase; }
+.swipe-hint{ font-size:12px; color:#9c9488; text-align:center; margin:8px 0 16px; display:flex; align-items:center; justify-content:center; gap:6px; }
+.swipe-hint .arrow-anim{ display:inline-block; animation:swipehint 1.6s ease-in-out infinite; }
+@keyframes swipehint{ 0%,100%{transform:translateX(0);} 50%{transform:translateX(6px);} }
+
+.carousel-wrap{ width:100%; max-width:460px; padding:0 16px; position:relative; }
+.carousel-track{ display:flex; overflow:hidden; touch-action:pan-y; }
+.carousel-track .slide{ flex:0 0 100%; min-width:100%; }
+.carousel-inner{ display:flex; transition:transform .3s ease; will-change:transform; }
+
+.nav-arrow{
+  position:absolute; top:45%; transform:translateY(-50%);
+  width:38px; height:38px; border-radius:50%;
+  background:rgba(15,18,16,.88); border:1px solid #6b5f45; color:#e8c77a;
+  font-size:16px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; z-index:10; user-select:none;
+}
+.nav-arrow:hover{ background:rgba(30,42,36,.95); }
+.nav-arrow.left{ left:2px; }
+.nav-arrow.right{ right:2px; }
+.nav-arrow.disabled{ opacity:.25; pointer-events:none; }
+
+.dots{ display:flex; justify-content:center; gap:6px; margin:14px 0 6px; flex-wrap:wrap; padding:0 16px; }
+.dot{ width:7px; height:7px; border-radius:50%; background:#2a3f37; cursor:pointer; transition:background .15s ease; }
+.dot.active{ background:#e8c77a; }
+.counter{ text-align:center; font-size:11.5px; color:#6b6355; margin-bottom:10px; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="nav-strip"><a href="royal-city-alliance-map.html" class="nav-pill">🏠 Home</a><a href="territory-map.html" class="nav-pill">🗺️ Map</a><a href="do-today.html" class="nav-pill">✅ Do Today</a><a href="game-guides.html" class="nav-pill active">🎮 Game Guides</a><a href="event-guides.html" class="nav-pill">🎉 Event Guides</a><a href="sanctuary-upgrades.html" class="nav-pill">🏰 Sanctuary</a><a href="server-time-chart.html" class="nav-pill">🕐 Server Time</a></div>
+</div>
+<div class="page-head">
+  <div class="kicker">Game Guides</div>
+  <h1>Skin Buffs</h1>
+</div>
+<p class="swipe-hint">Swipe or use the arrows to browse all 7 skins <span class="arrow-anim">&#8594;</span></p>
+
+<div class="carousel-wrap">
+  <div class="nav-arrow left" id="prevBtn">&#8592;</div>
+  <div class="nav-arrow right" id="nextBtn">&#8594;</div>
+  <div class="carousel-track">
+    <div class="carousel-inner" id="carouselInner">
+<div class="slide"><div class="card">
+    <div class="card-img-wrap"><img src="skin-images/skin-black-raven-fortress.jpg" alt="Black Raven Fortress" loading="lazy"></div>
+    <div class="card-body">
+      <div class="skin-title">Black Raven Fortress</div>
+      <div class="skin-tag">Territory Skin</div>
+
+      <div class="section-label">Buffs</div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="kind">When Equipped</div><div class="buff-row"><span>DMG to Monsters</span><b>+5%</b></div></div>
+        <div class="stat-card"><div class="kind">When Owned (Permanent)</div><div class="buff-row"><span>DMG to Monsters</span><b>+1%</b></div></div>
+      </div>
+
+      <div class="section-label">How to Obtain</div>
+      <div class="check-list"><div class="check-item"><span class="c">+</span><span>Participate in the Strange Bazaar event.</span></div><div class="check-item"><span class="c">+</span><span>Purchase event packs.</span></div><div class="check-item"><span class="c">+</span><span>Accumulate spending points.</span></div><div class="check-item"><span class="c">+</span><span>Reach the top reward tier to unlock the permanent skin.</span></div></div>
+      <p class="note">According to player reports, the permanent skin required approximately US$150 in event purchases to unlock.</p>
+
+      <div class="section-label">When It's Available</div>
+      <div class="return-list"><div class="return-item">Through a future Strange Bazaar rerun.</div><div class="return-item">In premium spending events.</div><div class="return-item">In limited-time skin bundles.</div></div>
+
+      <div class="section-label">Details</div>
+      <table class="facts">
+        <tr><td class="k">Skin Type</td><td class="v">Territory Skin</td></tr>
+        <tr><td class="k">Theme</td><td class="v">Dark / Raven / Fortress</td></tr>
+        <tr><td class="k">Source</td><td class="v">Strange Bazaar Event</td></tr>
+        <tr><td class="k">Rarity</td><td class="v">Event Exclusive</td></tr>
+        <tr><td class="k">Best For</td><td class="v">Hunting World Monsters, PvE events, farming rewards — lower priority for PvP players.</td></tr>
+      </table>
+    </div>
+  </div></div>
+<div class="slide"><div class="card">
+    <div class="card-img-wrap"><img src="skin-images/skin-eagle-castle.jpg" alt="Eagle Castle" loading="lazy"></div>
+    <div class="card-body">
+      <div class="skin-title">Eagle Castle</div>
+      <div class="skin-tag">Territory Skin</div>
+
+      <div class="section-label">Buffs</div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="kind">When Equipped</div><div class="buff-row"><span>Overall March Speed</span><b>+5%</b></div></div>
+        <div class="stat-card"><div class="kind">When Owned (Permanent)</div><div class="buff-row"><span>Overall March Speed</span><b>+1.5%</b></div></div>
+      </div>
+
+      <div class="section-label">How to Obtain</div>
+      <div class="check-list"><div class="check-item"><span class="c">+</span><span>Complete daily event missions.</span></div><div class="check-item"><span class="c">+</span><span>Participate in event activities.</span></div><div class="check-item"><span class="c">+</span><span>Earn event points and milestone rewards.</span></div><div class="check-item"><span class="c">+</span><span>Purchase limited-time event packs for extra event currency.</span></div></div>
+      <p class="note">The permanent version required a large amount of event currency or spending, making it a whale-oriented cosmetic.</p>
+
+      <div class="section-label">When It's Available</div>
+      <div class="return-list"><div class="return-item">During a rerun of the Eagle Castle Event.</div><div class="return-item">In a future premium skin bundle.</div><div class="return-item">During a special anniversary or seasonal event.</div></div>
+
+      <div class="section-label">Details</div>
+      <table class="facts">
+        <tr><td class="k">Skin Type</td><td class="v">Territory Skin</td></tr>
+        <tr><td class="k">Theme</td><td class="v">Eagle / Castle / Royal</td></tr>
+        <tr><td class="k">Source</td><td class="v">Eagle Castle Event</td></tr>
+        <tr><td class="k">Rarity</td><td class="v">Event Exclusive</td></tr>
+        
+      </table>
+    </div>
+  </div></div>
+<div class="slide"><div class="card">
+    <div class="card-img-wrap"><img src="skin-images/skin-fantasy-city.jpg" alt="Fantasy City" loading="lazy"></div>
+    <div class="card-body">
+      <div class="skin-title">Fantasy City</div>
+      <div class="skin-tag">Territory Skin</div>
+
+      <div class="section-label">Buffs</div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="kind">When Equipped</div><div class="buff-row"><span>DMG to Monsters</span><b>+5%</b></div></div>
+        <div class="stat-card"><div class="kind">When Owned (Permanent)</div><div class="buff-row"><span>DMG to Monsters</span><b>+1%</b></div></div>
+      </div>
+
+      <div class="section-label">How to Obtain</div>
+      <div class="check-list"><div class="check-item"><span class="c">+</span><span>Complete daily event missions.</span></div><div class="check-item"><span class="c">+</span><span>Earn special event currency.</span></div><div class="check-item"><span class="c">+</span><span>Purchase limited-time event bundles.</span></div><div class="check-item"><span class="c">+</span><span>Reach the highest milestone rewards to unlock the permanent Territory Skin.</span></div></div>
+      <p class="note">The permanent version required a significant amount of event currency or spending to obtain.</p>
+
+      <div class="section-label">When It's Available</div>
+      <div class="return-list"><div class="return-item">Through a future Fantasy Realm run.</div><div class="return-item">In anniversary events.</div><div class="return-item">In premium skin bundles.</div></div>
+
+      <div class="section-label">Details</div>
+      <table class="facts">
+        <tr><td class="k">Skin Type</td><td class="v">Territory Skin</td></tr>
+        <tr><td class="k">Theme</td><td class="v">Fantasy / Sky / Airship</td></tr>
+        <tr><td class="k">Source</td><td class="v">Fantasy Realm Event</td></tr>
+        <tr><td class="k">Rarity</td><td class="v">Event Exclusive</td></tr>
+        <tr><td class="k">Best For</td><td class="v">Hunting World Monsters, PvE events, farming rewards — ATK/HP/March Speed skins give more PvP impact.</td></tr>
+      </table>
+    </div>
+  </div></div>
+<div class="slide"><div class="card">
+    <div class="card-img-wrap"><img src="skin-images/skin-greenery.jpg" alt="Greenery" loading="lazy"></div>
+    <div class="card-body">
+      <div class="skin-title">Greenery</div>
+      <div class="skin-tag">Territory Skin</div>
+
+      <div class="section-label">Buffs</div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="kind">When Equipped</div><div class="buff-row"><span>Hero ATK</span><b>+5%</b></div></div>
+        <div class="stat-card"><div class="kind">When Owned (Permanent)</div><div class="buff-row"><span>Hero ATK</span><b>+5%</b></div><div class="buff-row"><span>Hero HP</span><b>+5%</b></div></div>
+      </div>
+
+      <div class="section-label">How to Obtain</div>
+      <div class="check-list"><div class="check-item"><span class="c">+</span><span>Participate in the 2026 Easter Event.</span></div><div class="check-item"><span class="c">+</span><span>Complete event tasks and missions.</span></div><div class="check-item"><span class="c">+</span><span>Collect Easter Eggs during the event.</span></div><div class="check-item"><span class="c">+</span><span>Use event currency in the Art Market / Event Shop to exchange for rewards.</span></div><div class="check-item"><span class="c">+</span><span>Purchase limited-time event packs for extra currency and rewards.</span></div></div>
+      <p class="note">The permanent version required significant participation or event spending. Most players only obtained the 3-day or 30-day temporary version.</p>
+
+      <div class="section-label">When It's Available</div>
+      <div class="return-list"><div class="return-item">During a future Easter Event.</div><div class="return-item">In special sales or bundles offering past skins.</div></div>
+
+      <div class="section-label">Details</div>
+      <table class="facts">
+        <tr><td class="k">Skin Type</td><td class="v">Territory Skin</td></tr>
+        <tr><td class="k">Theme</td><td class="v">Nature / Forest / Easter</td></tr>
+        <tr><td class="k">Source</td><td class="v">2026 Easter Event</td></tr>
+        <tr><td class="k">Rarity</td><td class="v">Event Exclusive</td></tr>
+        
+      </table>
+    </div>
+  </div></div>
+<div class="slide"><div class="card">
+    <div class="card-img-wrap"><img src="skin-images/skin-land-of-purgatory.jpg" alt="Land of Purgatory" loading="lazy"></div>
+    <div class="card-body">
+      <div class="skin-title">Land of Purgatory</div>
+      <div class="skin-tag">Territory Skin</div>
+
+      <div class="section-label">Buffs</div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="kind">When Equipped</div><div class="buff-row"><span>Hero ATK</span><b>+5%</b></div></div>
+        <div class="stat-card"><div class="kind">When Owned (Permanent)</div><div class="buff-row"><span>Hero ATK</span><b>+5%</b></div></div>
+      </div>
+
+      <div class="section-label">How to Obtain</div>
+      <div class="check-list"><div class="check-item"><span class="c">+</span><span>Compete in the Arena season.</span></div><div class="check-item"><span class="c">+</span><span>Climb the Arena rankings.</span></div><div class="check-item"><span class="c">+</span><span>Finish the season in the required reward bracket.</span></div><div class="check-item"><span class="c">+</span><span>Claim it as an Arena ranking reward.</span></div></div>
+      <p class="note">This skin was earned through skill, ranking, and domination in the Arena.</p>
+
+      <div class="section-label">When It's Available</div>
+      <div class="return-list"><div class="return-item">Future Arena seasons.</div><div class="return-item">Special competitive reward rotations.</div><div class="return-item">Anniversary reward pools.</div></div>
+
+      <div class="section-label">Details</div>
+      <table class="facts">
+        <tr><td class="k">Skin Type</td><td class="v">Territory Skin</td></tr>
+        <tr><td class="k">Theme</td><td class="v">Lava / Hell Fortress</td></tr>
+        <tr><td class="k">Source</td><td class="v">Arena Ranking Reward</td></tr>
+        <tr><td class="k">Rarity</td><td class="v">Arena Exclusive</td></tr>
+        <tr><td class="k">Best For</td><td class="v">PvP, Rally Leaders, War Players.</td></tr>
+      </table>
+    </div>
+  </div></div>
+<div class="slide"><div class="card">
+    <div class="card-img-wrap"><img src="skin-images/skin-mystic-cabin.jpg" alt="Mystic Cabin" loading="lazy"></div>
+    <div class="card-body">
+      <div class="skin-title">Mystic Cabin</div>
+      <div class="skin-tag">Territory Skin</div>
+
+      <div class="section-label">Buffs</div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="kind">When Equipped</div><div class="buff-row"><span>Hero ATK</span><b>+5%</b></div></div>
+        <div class="stat-card"><div class="kind">When Owned (Permanent)</div><div class="buff-row"><span>Hero HP</span><b>+5%</b></div><div class="buff-row"><span>Hero DEF</span><b>+5%</b></div></div>
+      </div>
+
+      <div class="section-label">How to Obtain</div>
+      <div class="check-list"><div class="check-item"><span class="c">+</span><span>Participate in the Strange Bazaar.</span></div><div class="check-item"><span class="c">+</span><span>Purchase event packs to earn Bazaar currency.</span></div><div class="check-item"><span class="c">+</span><span>Exchange currency for premium rewards.</span></div><div class="check-item"><span class="c">+</span><span>Reach the required spending milestone to unlock the permanent Territory Skin.</span></div></div>
+      <p class="note">This is a premium/whale-exclusive skin due to the high amount of spending typically required.</p>
+
+      <div class="section-label">When It's Available</div>
+      <div class="return-list"><div class="return-item">Future Strange Bazaar events.</div><div class="return-item">Premium skin rotations.</div></div>
+
+      <div class="section-label">Details</div>
+      <table class="facts">
+        <tr><td class="k">Skin Type</td><td class="v">Territory Skin</td></tr>
+        <tr><td class="k">Theme</td><td class="v">Mystic / Witch Cabin</td></tr>
+        <tr><td class="k">Source</td><td class="v">Strange Bazaar Event</td></tr>
+        <tr><td class="k">Rarity</td><td class="v">Premium / Limited</td></tr>
+        <tr><td class="k">Best For</td><td class="v">PvP, Rally Leaders, Defense.</td></tr>
+      </table>
+    </div>
+  </div></div>
+<div class="slide"><div class="card">
+    <div class="card-img-wrap"><img src="skin-images/skin-rabbit-s-tea-party.jpg" alt="Rabbit's Tea Party" loading="lazy"></div>
+    <div class="card-body">
+      <div class="skin-title">Rabbit's Tea Party</div>
+      <div class="skin-tag">Territory Skin</div>
+
+      <div class="section-label">Buffs</div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="kind">When Equipped</div><div class="buff-row"><span>Hero ATK</span><b>+5%</b></div></div>
+        <div class="stat-card"><div class="kind">When Owned (Permanent)</div><div class="buff-row"><span>Hero ATK</span><b>+5%</b></div><div class="buff-row"><span>Hero DEF</span><b>+5%</b></div></div>
+      </div>
+
+      <div class="section-label">How to Obtain</div>
+      <div class="check-list"><div class="check-item"><span class="c">+</span><span>Participate in the Fantasy Realm event.</span></div><div class="check-item"><span class="c">+</span><span>Complete event missions and activities to earn Teacups.</span></div><div class="check-item"><span class="c">+</span><span>Open Teacup Lucky Boxes and collect event currency.</span></div><div class="check-item"><span class="c">+</span><span>Exchange 4,000 Teacups in the Teacup Market for the permanent Territory Skin.</span></div></div>
+      <p class="note">Cost: 4,000 Teacups.</p>
+
+      <div class="section-label">When It's Available</div>
+      <div class="return-list"><div class="return-item">Future Fantasy Realm events.</div><div class="return-item">Special event shop rotations.</div></div>
+
+      <div class="section-label">Details</div>
+      <table class="facts">
+        <tr><td class="k">Skin Type</td><td class="v">Territory Skin</td></tr>
+        <tr><td class="k">Theme</td><td class="v">Fantasy / Tea Party</td></tr>
+        <tr><td class="k">Source</td><td class="v">Fantasy Realm Event</td></tr>
+        <tr><td class="k">Rarity</td><td class="v">Event Exclusive</td></tr>
+        <tr><td class="k">Best For</td><td class="v">PvP, Rally Leaders, Endgame Combat.</td></tr>
+      </table>
+    </div>
+  </div></div>
+
+    </div>
+  </div>
+</div>
+<p class="counter" id="counterLabel"></p>
+<div class="dots" id="dotsRow"><span class="dot" data-idx="0"></span><span class="dot" data-idx="1"></span><span class="dot" data-idx="2"></span><span class="dot" data-idx="3"></span><span class="dot" data-idx="4"></span><span class="dot" data-idx="5"></span><span class="dot" data-idx="6"></span></div>
+
+<script>
+const inner = document.getElementById('carouselInner');
+const slides = Array.from(inner.querySelectorAll('.slide'));
+const dots = Array.from(document.querySelectorAll('.dot'));
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const counterLabel = document.getElementById('counterLabel');
+const skinNames = ["Black Raven Fortress", "Eagle Castle", "Fantasy City", "Greenery", "Land of Purgatory", "Mystic Cabin", "Rabbit's Tea Party"];
+let idx = 0;
+
+function render() {
+  inner.style.transform = `translateX(-${idx * 100}%)`;
+  dots.forEach((d,i) => d.classList.toggle('active', i === idx));
+  prevBtn.classList.toggle('disabled', idx === 0);
+  nextBtn.classList.toggle('disabled', idx === slides.length - 1);
+  counterLabel.textContent = `${idx+1} / ${slides.length} — ${skinNames[idx]}`;
+}
+function goTo(i) {
+  idx = Math.max(0, Math.min(slides.length - 1, i));
+  render();
+}
+prevBtn.addEventListener('click', () => goTo(idx - 1));
+nextBtn.addEventListener('click', () => goTo(idx + 1));
+dots.forEach(d => d.addEventListener('click', () => goTo(parseInt(d.dataset.idx))));
+
+// touch swipe
+let touchStartX = null;
+const track = document.querySelector('.carousel-track');
+track.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive:true});
+track.addEventListener('touchend', (e) => {
+  if (touchStartX === null) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 40) {
+    if (dx < 0) goTo(idx + 1); else goTo(idx - 1);
+  }
+  touchStartX = null;
+}, {passive:true});
+
+render();
+</script>
+</body>
+</html>
